@@ -179,8 +179,6 @@ void collisionCallback(int first, int second, glm::vec3 collisionNormal, float p
 }
 void registerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth)
 {
-    float mult = (penetrationDepth < 0) ? -1 : 1;
-    collisionNormal *= mult;
     collisionInfo one;
     one.id = first;
     one.collisionNormal = -collisionNormal;

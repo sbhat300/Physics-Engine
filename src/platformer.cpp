@@ -29,7 +29,7 @@ void updateDeltaTime();
 void configureShader(Shader& shader);
 void setCamSettings();
 void playerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth);
-void physics();
+void physics(GLFWwindow* window);
 void resolveCollisions();
 bool sortCollisions(std::pair<collisionInfo, collisionInfo> lhs, std::pair<collisionInfo, collisionInfo> rhs);
 void registerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth);
@@ -45,7 +45,7 @@ std::vector<std::pair<collisionInfo, collisionInfo>> collisions;
 
 rectangleRigidbody rect(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(0, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.5f);
 rectangleRigidbody rect2(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(200, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
-platformerPlayer player(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 1.0f, 0.2f, 7);
+platformerPlayer player(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 1.0f, 6.0f, 7);
 rectangleRigidbody bottomFloor(1, 1, 0, glm::vec3(1000, 60, 60), glm::vec3(0, -300, 0), &deltaTime, &counter, &rectangleColliders, 0, &rectangleRbs, 0.0f);
 
 int main() {
@@ -89,7 +89,7 @@ int main() {
         processWireframeChange(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        physics();
+        physics(window);
         configureShader(shader);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -97,7 +97,7 @@ int main() {
     glfwTerminate();
 	return 0;
 }
-void physics()
+void physics(GLFWwindow* window)
 {
     player.grounded = false;
 
@@ -122,6 +122,13 @@ void physics()
     player.updateCollider();
     bottomFloor.updateCollider();
     resolveCollisions();
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        player.addForce(player.speed, 0);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        player.addForce(-player.speed, 0);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && player.grounded)
+        player.addImpulse(0, player.jumpForce);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -142,14 +149,6 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        player.addImpulse(player.speed, 0);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        player.addImpulse(-player.speed, 0);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && player.grounded)
-        player.addImpulse(0, player.jumpForce);
-    
-    
 }
 void processWireframeChange(GLFWwindow* window) 
 {
@@ -180,15 +179,12 @@ void setCamSettings()
 void playerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth)
 {
     glm::vec3 worldUp(0, 1, 0);
-    float mult = (penetrationDepth < 0) ? -1 : 1;
-    float diff = glm::dot(collisionNormal * mult, worldUp);
+    float diff = glm::dot(collisionNormal, worldUp);
     if((std::abs(diff) > 0.707106781f) && (std::abs(diff) <= 1)) player.grounded = true;
     registerCollision(first, second, collisionNormal, penetrationDepth);
 }
 void registerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth)
 {
-    float mult = (penetrationDepth < 0) ? -1 : 1;
-    collisionNormal *= mult;
     collisionInfo one;
     one.id = first;
     one.collisionNormal = -collisionNormal;
@@ -237,7 +233,7 @@ void resolveCollisions()
 
         const float percent = 0.2; // usually 20% to 80% 
         const float slop = 0.01; // usually 0.01 to 0.1 
-        glm::vec3 correction = std::max(std::abs(i.first.penetrationDepth) - slop, 0.0f) / ((*f).invMass + (*s).invMass) * percent * i.first.collisionNormal;
+        glm::vec3 correction = std::max(i.first.penetrationDepth - slop, 0.0f) / ((*f).invMass + (*s).invMass) * percent * i.first.collisionNormal;
         (*f).position -= (*f).invMass * correction;
         (*s).position += (*s).invMass * correction;
     }

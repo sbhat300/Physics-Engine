@@ -93,11 +93,12 @@ class rectangleCollider : public rectangle
                     }
                     float overlap;
                     if(right < left) overlap = right;
-                    else overlap = -left;
-                    if(std::abs(overlap) < std::abs(minOverlap))
+                    else overlap = left;
+                    if(overlap < std::abs(minOverlap))
                     {
                         minOverlap = overlap;
                         smallestAxis = axes[i];
+                        if(right >= left) smallestAxis *= -1;
                     }
                 }
                 if(notColliding) continue;
