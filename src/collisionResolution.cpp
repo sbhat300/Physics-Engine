@@ -32,20 +32,23 @@ void physics();
 void resolveCollisions();
 bool sortCollisions(std::pair<collisionInfo, collisionInfo> lhs, std::pair<collisionInfo, collisionInfo> rhs);
 void registerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth);
+void render(float alpha);
+void timestep();
 
 float windowHeight = 600, windowWidth = 800;
 camera2D camera(glm::vec3(0, 0, 1));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 int counter = 0;
+float fixedDeltaTime = 1 / 100.0f, accumulator = 0;
 
 std::map<int, rectangleCollider*> rectangleColliders;
 std::map<int, rectangleRigidbody*> rectangleRbs;
 std::vector<std::pair<collisionInfo, collisionInfo>> collisions;
 
-rectangleRigidbody rect(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(200, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
-rectangleRigidbody rect2(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
-rectangleRigidbody rect3(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-400, 200, 0), &deltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
-rectangleRigidbody bottomFloor(1, 1, 0, glm::vec3(1000, 60, 60), glm::vec3(0, -300, 0), &deltaTime, &counter, &rectangleColliders, 0, &rectangleRbs, 1.0f);
+rectangleRigidbody rect(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(200, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
+rectangleRigidbody rect2(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
+rectangleRigidbody rect3(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-400, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f);
+rectangleRigidbody bottomFloor(1, 1, 0, glm::vec3(1000, 60, 60), glm::vec3(0, -300, 0), &fixedDeltaTime, &counter, &rectangleColliders, 0, &rectangleRbs, 1.0f);
 
 int main() {
     rect.setCollisionCallback(collisionCallback);
@@ -86,12 +89,13 @@ int main() {
     
     while (!glfwWindowShouldClose(window))
     {
+        std::cout << "fps: " << 1/deltaTime << std::endl;
         updateDeltaTime();
         processInput(window);
         processWireframeChange(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        physics();
+        timestep();
         configureShader(shader);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -99,24 +103,40 @@ int main() {
     glfwTerminate();
 	return 0;
 }
+void timestep()
+{
+    accumulator += deltaTime;
+    if(accumulator > 0.2f) accumulator = 0.2f;
+    while(accumulator >= fixedDeltaTime)
+    {
+        physics();
+        accumulator -= fixedDeltaTime;
+    }
+    float alpha = accumulator / fixedDeltaTime;
+    render(alpha);
+}
 void physics()
 {
     rect.addForce(0, -9.8f);
     rect2.addForce(0, -9.8f);
     rect3.addForce(0, -9.8f);
+    rect.updateRigidbody();
+    rect2.updateRigidbody();
+    rect3.updateRigidbody();
+    bottomFloor.updateRigidbody();
     rect.updateCollider();
     rect2.updateCollider();
     rect3.updateCollider();
     bottomFloor.updateCollider();
     resolveCollisions();
-    rect.updateRigidbody();
-    rect2.updateRigidbody();
-    rect3.updateRigidbody();
-    bottomFloor.updateRigidbody();
-    rect.render();
-    rect2.render();
-    rect3.render();
-    bottomFloor.render();
+}
+void render(float alpha)
+{
+    for(auto i = rectangleRbs.begin(); i != rectangleRbs.end(); i++)
+    {
+        glm::vec3 pos = i->second->previousPos * alpha + i->second->position * (1 - alpha);
+        i->second->render(pos.x, pos.y);
+    }
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)

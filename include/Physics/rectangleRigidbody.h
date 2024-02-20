@@ -31,10 +31,12 @@ class rectangleRigidbody : public rectangleCollider
         }
         void updateRigidbody()
         {
+            previousPos = glm::vec3(position.x, position.y, 0);
             velocity += force * invMass * *deltaTime + impulse * invMass;
             position += velocity;
             force = glm::vec3(0, 0, 0);
             impulse = glm::vec3(0, 0, 0);
+            updatePoints();
         }
         void addForce(float x, float y)
         {

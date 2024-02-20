@@ -33,6 +33,7 @@ void physics(GLFWwindow* window);
 void resolveCollisions();
 bool sortCollisions(std::pair<collisionInfo, collisionInfo> lhs, std::pair<collisionInfo, collisionInfo> rhs);
 void registerCollision(int first, int second, glm::vec3 collisionNormal, float penetrationDepth);
+void render();
 
 float windowHeight = 600, windowWidth = 800;
 camera2D camera(glm::vec3(0, 0, 1));
@@ -90,6 +91,7 @@ int main() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         physics(window);
+        render();
         configureShader(shader);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -111,10 +113,6 @@ void physics(GLFWwindow* window)
     rect2.updateRigidbody();
     player.updateRigidbody();
     bottomFloor.updateRigidbody();
-    rect.render();
-    rect2.render();
-    player.render();
-    bottomFloor.render();
 
     //Colliders
     rect.updateCollider();
@@ -129,6 +127,14 @@ void physics(GLFWwindow* window)
         player.addForce(-player.speed, 0);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && player.grounded)
         player.addImpulse(0, player.jumpForce);
+}
+
+void render()
+{
+    rect.render();
+    rect2.render();
+    player.render();
+    bottomFloor.render();
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
