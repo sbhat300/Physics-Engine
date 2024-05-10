@@ -40,16 +40,18 @@ float windowHeight = 600, windowWidth = 800;
 camera2D camera(glm::vec3(0, 0, 1));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 int counter = 0;
-float fixedDeltaTime = 1 / 100.0f, accumulator = 0;
+float fixedDeltaTime = 1 / 60.0f, accumulator = 0;
 
 std::map<int, rectangleCollider*> rectangleColliders;
 std::map<int, rectangleRigidbody*> rectangleRbs;
 std::vector<std::pair<collisionInfo, collisionInfo>> collisions;
 
-rectangleRigidbody rect(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(200, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f, 0.5f, 0.7f);
-rectangleRigidbody rect2(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.5f, 0.5f, 0.7f);
-rectangleRigidbody rect3(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 100, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.5f, 0.5f, 0.7f);
-rectangleRigidbody bottomFloor(1, 1, 0, glm::vec3(1000, 60, 60), glm::vec3(0, -300, 0), &fixedDeltaTime, &counter, &rectangleColliders, 0, &rectangleRbs, 0.0f, 0.05f, 0.1f);
+float iterations = 5;
+
+rectangleRigidbody rect(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(200, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f, 0.2f, 0.5f, &iterations);
+rectangleRigidbody rect2(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, 200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f, 0.2f, 0.5f, &iterations);
+rectangleRigidbody rect3(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, -200, 0), &fixedDeltaTime, &counter, &rectangleColliders, 10, &rectangleRbs, 0.0f, 0.2f, 0.5f, &iterations);
+rectangleRigidbody bottomFloor(1, 1, 0, glm::vec3(1000, 60, 60), glm::vec3(0, -300, 0), &fixedDeltaTime, &counter, &rectangleColliders, 0, &rectangleRbs, 1.0f, 0.05, 0.07f, &iterations);
 
 int main() {
     rect.setCollisionCallback(collisionCallback);
@@ -85,9 +87,6 @@ int main() {
     Shader shader("D:/Physics-Engine/shaders/gravityVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
     setCamSettings();
 
-    // rect.addImpulse(-5.0f, 0);
-    // rect2.addImpulse(3.0f, 0);
-    
     while (!glfwWindowShouldClose(window))
     {
         // std::cout << "fps: " << 1/deltaTime << std::endl;
@@ -110,7 +109,7 @@ void timestep(GLFWwindow* window)
     if(accumulator > 0.2f) accumulator = 0.2f;
     while(accumulator >= fixedDeltaTime)
     {
-        physics(window);
+        for(int i = 0; i < iterations; i++) physics(window);
         accumulator -= fixedDeltaTime;
     }
     float alpha = accumulator / fixedDeltaTime;
@@ -120,7 +119,7 @@ void physics(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
-        rect.addForce(-2000.0f, 0);
+        rect.addForce(-10000.0f, 0);
     }
     rect.addForce(0, -1000.0f);
     rect2.addForce(0, -1000.0f);
@@ -162,11 +161,6 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
-    if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-    {
-        rect.setPosition(200, 200);
-        rect2.setPosition(-200, -250);
-    }
 }
 void processWireframeChange(GLFWwindow* window) 
 {
@@ -202,11 +196,11 @@ void registerCollision(int first, int second, glm::vec3 collisionNormal, float p
 {
     collisionInfo one;
     one.id = first;
-    one.collisionNormal = -collisionNormal;
+    one.collisionNormal = collisionNormal;
     one.penetrationDepth = penetrationDepth;
     collisionInfo two;
     two.id = second;
-    two.collisionNormal = collisionNormal;
+    two.collisionNormal = -collisionNormal;
     two.penetrationDepth = penetrationDepth;
     if(first < second) collisions.push_back(std::pair<collisionInfo, collisionInfo>(one, two));
     else collisions.push_back(std::pair<collisionInfo, collisionInfo>(two, one));
@@ -236,41 +230,59 @@ void resolveCollisions()
     {
         rectangleRigidbody* f = rectangleRbs[i.first.id];
         rectangleRigidbody* s = rectangleRbs[i.second.id];
-        glm::vec3 relativeVelocity = (*s).velocity - (*f).velocity;
-        float velAlongNormal = glm::dot(relativeVelocity, i.first.collisionNormal);
-        if(velAlongNormal > 0) continue;
+        
         float e = std::min((*f).restitution, (*s).restitution);
-        float j = -(1 + e) * velAlongNormal;
-        j /= (*f).invMass + (*s).invMass;
-        glm::vec3 impulse = j * i.first.collisionNormal;
-        if(i.first.id == 1 && i.second.id == 2) std::cout << glm::to_string(impulse) << std::endl;
-        (*f).addImpulse(-impulse.x, -impulse.y);
-        (*s).addImpulse(impulse.x, impulse.y);
+        float fVel = glm::dot((*f).velocity, i.first.collisionNormal);
+        float sVel = glm::dot((*s).velocity, i.first.collisionNormal);
+        // if(glm::dot((*f).velocity - (*s).velocity, i.first.collisionNormal) > 0) return; 
+        float impulseMag;
+        float finalImpulse;
+        if((*s).mass == 0)
+            impulseMag = (*f).mass * (1 + e) * (sVel - fVel);
+        else 
+            impulseMag = (*f).mass * (*s).mass * (1 + e) * (sVel - fVel) / ((*f).mass + (*s).mass);
+        if((*f).mass != 0) finalImpulse = impulseMag;
+        glm::vec3 impulseF = i.first.collisionNormal * impulseMag;
+        if((*f).mass == 0) 
+            impulseMag = (*s).mass * (1 + e) * (fVel - sVel);        
+        else 
+            impulseMag = (*f).mass * (*s).mass * (1 + e) * (fVel - sVel) / ((*f).mass + (*s).mass);
+        if((*s).mass != 0) finalImpulse = -impulseMag;
+        glm::vec3 impulseS = impulseMag * i.first.collisionNormal;
+        (*f).addImpulse(impulseF.x, impulseF.y);
+        (*s).addImpulse(impulseS.x, impulseS.y);
 
-        const float percent = 0.2; // usually 20% to 80% 
+        const float percent = 0.5f; // usually 20% to 80% 
         const float slop = 0.01; // usually 0.01 to 0.1 
         glm::vec3 correction = std::max(i.first.penetrationDepth - slop, 0.0f) / ((*f).invMass + (*s).invMass) * percent * i.first.collisionNormal;
-        (*f).position -= (*f).invMass * correction;
-        (*s).position += (*s).invMass * correction;
-        
-        glm::vec3 collisionTangent = relativeVelocity - glm::dot(relativeVelocity, i.first.collisionNormal) * i.first.collisionNormal;
-        if(collisionTangent.x + collisionTangent.y == 0) continue;
-        else collisionTangent = glm::normalize(collisionTangent);
-        float jt = -glm::dot(relativeVelocity, collisionTangent);
-        jt /= ((*f).invMass + (*s).invMass);
-        float mu = sqrt(pow((*f).staticFriction, 2) + pow((*s).staticFriction, 2));
-        glm::vec3 frictionImpulse;
-        if(std::abs(jt) < j * mu)
+        (*f).position += (*f).invMass * correction;
+        (*s).position -= (*s).invMass * correction;
+
+        if(i.first.id == 0 && i.second.id == 1)
         {
-            frictionImpulse = jt * collisionTangent;
+            std::cout << i.first.penetrationDepth << std::endl;
         }
-        else
-        {
-            mu = sqrt(pow((*f).dynamicFriction, 2) + pow((*s).dynamicFriction, 2));
-            frictionImpulse = -j * collisionTangent * mu;
-        }
-        (*f).addImpulse(-frictionImpulse.x, -frictionImpulse.y);
-        (*s).addImpulse(frictionImpulse.x, frictionImpulse.y);
+
+        // glm::vec3 relativeVelocity = (*s).velocity - (*f).velocity;
+        // glm::vec3 collisionTangent = relativeVelocity - glm::dot(relativeVelocity, i.first.collisionNormal) * i.first.collisionNormal;
+        // if(collisionTangent.x + collisionTangent.y == 0) continue;
+        // else collisionTangent = glm::normalize(collisionTangent);
+        // float jt = -glm::dot(relativeVelocity, collisionTangent);
+        // jt /= ((*f).invMass + (*s).invMass);
+        // float mu = sqrt(pow((*f).staticFriction, 2) + pow((*s).staticFriction, 2));
+        // glm::vec3 frictionImpulse;
+        // if(std::abs(jt) < finalImpulse * mu)
+        // {
+        //     frictionImpulse = jt * collisionTangent;
+        // }
+        // else
+        // {
+        //     mu = sqrt(pow((*f).dynamicFriction, 2) + pow((*s).dynamicFriction, 2));
+        //     frictionImpulse = -finalImpulse * collisionTangent * mu;
+        // }
+        // if(i.first.id == 0 && i.second.id == 3) std::cout << glm::to_string(frictionImpulse) << std::endl;
+        // (*f).addImpulse(-frictionImpulse.x, -frictionImpulse.y);
+        // (*s).addImpulse(frictionImpulse.x, frictionImpulse.y);
     }
 }
 bool sortCollisions(std::pair<collisionInfo, collisionInfo> lhs, std::pair<collisionInfo, collisionInfo> rhs)

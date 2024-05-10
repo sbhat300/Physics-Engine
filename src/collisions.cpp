@@ -9,6 +9,8 @@
 #include <camera/camera2D.h>
 #include <Physics/rectangleCollider.h>
 #include <Objects/rectangle.h>
+#include <Physics/ray.h>
+#include <Objects/point.h>
 #include <list>
 #include <map>
 
@@ -18,23 +20,29 @@ void processWireframeChange(GLFWwindow* window);
 void updateDeltaTime();
 void configureShader(Shader& shader);
 void setCamSettings();
-void collisionCallback(int first, int second, glm::vec3 collisionNormal, float penetrationDepth);
+void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void bufferMatrices(int ubo);
 
 float windowHeight = 600, windowWidth = 800;
-camera2D camera(glm::vec3(0, 0, 1));
+int maxLayers = 10;
+camera2D camera(glm::vec3(0, 0, maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 int counter = 0;
 
 std::map<int, rectangleCollider*> rectangles;
 
-rectangleCollider bottomFloor(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(0, -300, 0), &deltaTime, &counter, &rectangles);
-rectangleCollider rect(1, 1, 0, glm::vec3(40, 40, 40), glm::vec3(-200, -300, 0), &deltaTime, &counter, &rectangles);
+rectangleCollider bottomFloor(1, 1, 0, glm::vec2(40, 40), glm::vec3(0, -300, 0), &deltaTime, &counter, &rectangles);
+rectangleCollider rect(1, 1, 0, glm::vec2(40, 40), glm::vec3(-200, -300, 0), &deltaTime, &counter, &rectangles);
+ray r(glm::vec2(0, 0), glm::vec2(1, 0), 5);
 
 int main() {
     rect.setCollisionCallback(collisionCallback);
+    r.layer = 1;
+    rect.setLayer(1);
     bottomFloor.collide = false;
-    rect.setColor(glm::vec3(0.3f, 0.5f, 0.7f));
+    rect.setColor(glm::vec3(0.5f, 0.5f, 0.7f));
+    bottomFloor.setColor(glm::vec3(0.8f, 0.4f, 0.6f));
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -56,7 +64,28 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
 
+    glEnable(GL_PROGRAM_POINT_SIZE);  
+    glEnable(GL_DEPTH_TEST);  
+
+    
+
     Shader shader("D:/Physics-Engine/shaders/gravityVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader pointShader("D:/Physics-Engine/shaders/pointVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader rayShader("D:/Physics-Engine/shaders/rayVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    configureShader(shader);
+    configureShader(pointShader);
+    configureShader(rayShader);
+    rect.debugShaderProgram = pointShader.ID;
+
+    unsigned int matrixUBO;
+    glGenBuffers(1, &matrixUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, matrixUBO);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, matrixUBO, 0, 2 * sizeof(glm::mat4));
+    glm::mat4 projection = glm::ortho(0.0f, windowWidth, 0.0f, windowHeight, 0.1f, 100.0f);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     setCamSettings();
 
     while (!glfwWindowShouldClose(window))
@@ -65,12 +94,15 @@ int main() {
         processInput(window);
         processWireframeChange(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        configureShader(shader);
-        rect.updateCollider();
-        bottomFloor.updateCollider();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        bufferMatrices(matrixUBO);
+        shader.use();
         rect.render();
         bottomFloor.render();
+        rect.updateCollider();
+        bottomFloor.updateCollider();
+        rayShader.use();
+        r.render();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -97,10 +129,9 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rect.rotation += 50 * deltaTime;
+        rect.setRotation(rect.rotation + 50 * deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.rotation -= 50 * deltaTime;
-    
+        rect.setRotation(rect.rotation - 50 * deltaTime);   
 }
 void processWireframeChange(GLFWwindow* window) 
 {
@@ -115,24 +146,30 @@ void updateDeltaTime()
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
 }
+void bufferMatrices(int ubo)
+{
+    glm::mat4 view = camera.GetViewMatrix();
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 void configureShader(Shader& shader)
 {
     shader.use();
-    glm::mat4 view = camera.GetViewMatrix();
-    shader.setMat4("view", view);
-    glm::mat4 projection = glm::ortho(0.0f, windowWidth, 0.0f, windowHeight, 0.1f, 100.0f);
-    shader.setMat4("projection", projection);
+    unsigned int uniformBlock = glGetUniformBlockIndex(shader.ID, "Matrices");
+    glUniformBlockBinding(shader.ID, uniformBlock, 0);
 }
 void setCamSettings()
 {
-    camera.camPos = glm::vec3(-windowWidth / 2, -windowHeight / 2, 1);
+    camera.camPos = glm::vec3(-windowWidth / 2, -windowHeight / 2, 10);
     camera.speed = 200.0f;
 }
-void collisionCallback(int first, int second, glm::vec3 collisionNormal, float penetrationDepth)
+void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
-    std::cout << glm::to_string(collisionNormal * penetrationDepth) << std::endl;
+    std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     rect.setPosition(camera.camPos.x + xpos, camera.camPos.y + (windowHeight - ypos));
+    // std::cout << rect.pointInPolygon(glm::vec2(camera.camPos.x + xpos, camera.camPos.y + (windowHeight - ypos))) << std::endl;
 }

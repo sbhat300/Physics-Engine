@@ -20,34 +20,68 @@ class rectangle
         float rotation;
         glm::vec3 points[4];
         float rect_vertices[12];
-        float vertices;
+        int vertices;
         glm::vec3 color;
-        rectangle(float h = 1, float w = 1, float r = 0, glm::vec3 s = glm::vec3(1, 1, 1), glm::vec2 p = glm::vec2(0, 0))
+        float layer;
+        rectangle(float h = 1, float w = 1, float r = 0, glm::vec2 s = glm::vec2(1, 1), glm::vec2 p = glm::vec2(0, 0))
         {
             height = h;
             width = w;
-            scale = s;
+            scale = glm::vec3(s, 1);
             rotation = r;
             position = glm::vec3(p.x, p.y, 0);
             color = glm::vec3(1,1,1);
+            layer = 1;
             //COUNTER CLOCKWISE CONVENTION
             float tempVertices[] = {
-                width / 2,  height / 2, 0.0f,  // top right
-                -width / 2,  height / 2, 0.0f,   // top left
-                -width / 2  , -height / 2, 0.0f,  // bottom left 
-                width / 2, -height / 2, 0.0f  // bottom right
+                width / 2,  height / 2, 1.0f,  // top right
+                -width / 2,  height / 2, 1.0f,   // top left
+                -width / 2, -height / 2, 1.0f,  // bottom left 
+                width / 2, -height / 2, 1.0f  // bottom right
             };
             vertices = (sizeof(rect_vertices) / sizeof(float)) / 3;
             std::copy(std::begin(tempVertices), std::end(tempVertices), std::begin(rect_vertices));
+            glm::vec2 centroid(0, 0);
+            for(int i = 0; i < vertices * 3; i += 3)
+            {
+                centroid.x += rect_vertices[i];
+                centroid.y += rect_vertices[i + 1];
+            }
+            centroid.x /= vertices;
+            centroid.y /= vertices;
+            for(int i = 0; i < vertices * 3; i += 3)
+            {
+                rect_vertices[i] -= centroid.x;
+                rect_vertices[i + 1] -= centroid.y;
+            }
+            float area = 0;
+            for(int i = 0; i < vertices * 3; i += 3)
+            {
+                int nextX = i + 3;
+                int nextY = i + 4;
+                if(i + 3 >= vertices * 3)
+                { 
+                    nextX = 0;
+                    nextY = 1;
+                }
+                area += rect_vertices[i] * rect_vertices[nextY] - rect_vertices[nextX] * rect_vertices[i + 1];
+            }
+            area /= 2;
+            float scale = 1 / std::sqrt(area);
+            for(int i = 0; i < vertices * 3; i += 3)
+            {
+                rect_vertices[i] *= scale;;
+                rect_vertices[i + 1] *= scale;
+            }
             updatePoints();
         }
         void render()
         {
-            renderSquare();
+            renderPolygon();
         }
         void render(float x, float y)
         {
-            renderSquare(x, y);
+            renderPolygon(x, y);
         }
         void setPosition(float x, float y)
         {
@@ -59,43 +93,49 @@ class rectangle
         {
             color = col;
         }
+        void setLayer(int l)
+        {
+            layer = l;
+            if(layer < 0) layer = 0;
+            for(int i = 0; i < vertices; i++)
+            {
+                rect_vertices[2 + 3 * i] = layer;
+            }
+            std::cout << layer << std::endl;
+        }
         void updatePoints()
         {
             for(int i = 0; i < 12; i += 3)
             {
-                glm::vec3 point = glm::vec3(rect_vertices[i], rect_vertices[i + 1], rect_vertices[i + 2]);;
+                glm::vec3 point = glm::vec3(rect_vertices[i], rect_vertices[i + 1], 0);;
                 points[i / 3] = point * scale;
                 float temp[2] = {points[i / 3].x, points[i / 3].y};
-                points[i / 3].x = temp[0] * cos(glm::radians(rotation)) - temp[1] * sin(glm::radians(rotation));
-                points[i / 3].y = temp[0] * sin(glm::radians(rotation)) + temp[1] * cos(glm::radians(rotation));
+                points[i / 3].x = temp[0] * cos(glm::radians(-rotation)) - temp[1] * sin(glm::radians(-rotation));
+                points[i / 3].y = temp[0] * sin(glm::radians(-rotation)) + temp[1] * cos(glm::radians(-rotation));
                 points[i / 3].x += position.x;
                 points[i / 3].y += position.y;
             }
         }
+        void setRotation(float degrees)
+        {
+            rotation = degrees;
+            updatePoints();
+        }
     private:
-        unsigned int squareVAO = 0, squareVBO = 0;
-        void renderSquare()
+        unsigned int polygonVAO = 0, polygonVBO = 0;
+        int prevLayer = -1;
+        void renderPolygon()
         {
             GLint currentShader = 0;
             glGetIntegerv(GL_CURRENT_PROGRAM, &currentShader);   
-            if(squareVAO == 0)
+            if(polygonVAO == 0)
             {
-                unsigned int indices[] = {  // note that we start from 0!
-                    0, 1, 3,   // first triangle
-                    1, 2, 3    // second triangle
-                };  
-                glGenVertexArrays(1, &squareVAO);
-                glGenBuffers(1, &squareVBO);
-                glBindVertexArray(squareVAO);
-                glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
-                unsigned int EBO;
-                glGenBuffers(1, &EBO);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-                glEnableVertexAttribArray(0);  
-                glBindVertexArray(0); 
+                initVAO();
+            }
+            if(prevLayer != layer)
+            {
+                prevLayer = layer;
+                bufferNewData();
             }
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, position);
@@ -105,32 +145,22 @@ class rectangle
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             int colorLoc = glGetUniformLocation(currentShader, "col");
             glUniform3fv(colorLoc, 1, glm::value_ptr(color));
-            glBindVertexArray(squareVAO);
+            glBindVertexArray(polygonVAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);             
         }
-        void renderSquare(float x, float y)
+        void renderPolygon(float x, float y)
         {
             GLint currentShader = 0;
             glGetIntegerv(GL_CURRENT_PROGRAM, &currentShader);   
-            if(squareVAO == 0)
+            if(polygonVAO == 0)
             {
-                unsigned int indices[] = {  // note that we start from 0!
-                    0, 1, 3,   // first triangle
-                    1, 2, 3    // second triangle
-                };  
-                glGenVertexArrays(1, &squareVAO);
-                glGenBuffers(1, &squareVBO);
-                glBindVertexArray(squareVAO);
-                glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
-                unsigned int EBO;
-                glGenBuffers(1, &EBO);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-                glEnableVertexAttribArray(0);  
-                glBindVertexArray(0); 
+                initVAO();
+            }
+            if(prevLayer != layer)
+            {
+                prevLayer = layer;
+                bufferNewData();
             }
             glm::mat4 model = glm::mat4(1.0f);
             glm::vec3 pos(x, y, 0);
@@ -141,9 +171,35 @@ class rectangle
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
             int colorLoc = glGetUniformLocation(currentShader, "col");
             glUniform3fv(colorLoc, 1, glm::value_ptr(color));
-            glBindVertexArray(squareVAO);
+            glBindVertexArray(polygonVAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);             
+        }
+        void initVAO()
+        {
+            unsigned int indices[] = {  // note that we start from 0!
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+            };  
+            glGenVertexArrays(1, &polygonVAO);
+            glGenBuffers(1, &polygonVBO);
+            glBindVertexArray(polygonVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, polygonVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(rect_vertices), rect_vertices, GL_STATIC_DRAW);
+            unsigned int EBO;
+            glGenBuffers(1, &EBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);  
+            glBindVertexArray(0); 
+        }
+        void bufferNewData()
+        {
+            glBindVertexArray(polygonVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, polygonVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(rect_vertices), rect_vertices);
+            glBindVertexArray(0);
         }
 };
 #endif
