@@ -11,13 +11,13 @@
                 "${fileDirname}\\${fileBasenameNoExtension}.exe",
                 "${file}",
                 "${workspaceFolder}\\src\\*.c",
+                "${workspaceFolder}\\src\\Implementations\\*.cpp",
                 "-IC:\\msys64\\mingw64\\include",
                 "-I${workspaceFolder}/include",
                 "-L${workspaceFolder}\\lib",
                 "-lglfw3",
                 "-lopengl32",
-                "-lgdi32",
-                "-lassimp"
+                "-lgdi32"
             ],
             "options": {
                 "cwd": "${fileDirname}"

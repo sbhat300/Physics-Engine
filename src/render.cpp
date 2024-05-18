@@ -13,6 +13,7 @@
 #include <Objects/point.h>
 #include <list>
 #include <map>
+#include <Physics/ray.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -32,32 +33,21 @@ int counter = 0;
 
 std::map<int, entity*> entities;
 
-entity bottomFloor(glm::vec2(0, -300), glm::vec2(40, 40), 0, &entities, &counter);
-entity rect(glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter);
-
-// rectangleCollider bottomFloor(1, 1, 0, glm::vec2(40, 40), glm::vec3(0, -300, 0), &deltaTime, &counter, &rectangles);
-// rectangleCollider rect(1, 1, 0, glm::vec2(40, 40), glm::vec3(-200, -300, 0), &deltaTime, &counter, &rectangles);
-ray r(glm::vec2(0, 0), glm::vec2(1, 0), 5);
+entity rect(glm::vec2(0, 0), glm::vec2(1, 1), 0, &entities, &counter);
+point p(0, 0, 1);
+ray r(glm::vec2(0, 10), glm::vec2(1, 0), 5);
 
 int main() {
-    rect.addPolygon();
+    rect.addPolygon(glm::vec2(0, 0), glm::vec2(1, 1), 0);
     rect.polygonInstance.initRectangle();
-    rect.polygonInstance.setColor(glm::vec3(0.5f, 0.5f, 0.7f));
+    p.setColor(glm::vec3(1, 1, 1));
+    p.setLayer(3);
+    // rect.polygonInstance.initPolygon(4, tempVertices, 6, indices);
     rect.polygonInstance.setLayer(1);
-    bottomFloor.addPolygon();
-    bottomFloor.polygonInstance.initRectangle();
-    bottomFloor.polygonInstance.setColor(glm::vec3(0.8f, 0.4f, 0.6f));
-
-    rect.addPolygonCollider();
-    rect.polygonColliderInstance.initRectangle();
-    bottomFloor.addPolygonCollider();
-    bottomFloor.polygonColliderInstance.initRectangle();
-
-    rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
-    bottomFloor.polygonColliderInstance.collide = false;
+    rect.polygonInstance.setColor(glm::vec3(0.5f, 0.5f, 0.7f));
+    rect.setScale(40, 40);
 
     r.layer = 1;
-
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -91,7 +81,6 @@ int main() {
     configureShader(shader);
     configureShader(pointShader);
     configureShader(rayShader);
-    rect.polygonColliderInstance.debugShaderProgram = pointShader.ID;
 
     unsigned int matrixUBO;
     glGenBuffers(1, &matrixUBO);
@@ -114,10 +103,11 @@ int main() {
         bufferMatrices(matrixUBO);
         shader.use();
         rect.polygonInstance.render();
-        bottomFloor.polygonInstance.render();
-        rect.polygonColliderInstance.updateCollider();
-        bottomFloor.polygonColliderInstance.updateCollider();
+        pointShader.use();
+        p.render();
         rayShader.use();
+        r.length += deltaTime * 10;
+        r.bufferNewData();
         r.render();
         glfwSwapBuffers(window);
         glfwPollEvents();
