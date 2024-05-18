@@ -35,8 +35,6 @@ std::map<int, entity*> entities;
 entity bottomFloor(glm::vec2(0, -300), glm::vec2(40, 40), 0, &entities, &counter);
 entity rect(glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter);
 
-// rectangleCollider bottomFloor(1, 1, 0, glm::vec2(40, 40), glm::vec3(0, -300, 0), &deltaTime, &counter, &rectangles);
-// rectangleCollider rect(1, 1, 0, glm::vec2(40, 40), glm::vec3(-200, -300, 0), &deltaTime, &counter, &rectangles);
 ray r(glm::vec2(0, 0), glm::vec2(1, 0), 5);
 
 int main() {
