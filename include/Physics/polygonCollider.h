@@ -35,6 +35,8 @@ class polygonCollider
         glm::vec2* baseScale;
         float* baseRotation;
         bool initialized;
+        float furthestDistance;
+        glm::vec2 centroid;
 
         polygonCollider(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, 
                             std::map<int, entity*>* cs = 0);
@@ -48,6 +50,8 @@ class polygonCollider
         void setPositionOffset(float x, float y);
         void setScaleOffset(float x, float y);
         void setRotationOffset(float r);
+        void updateFurthestPoint();
+        void renderColliderBounds();
     private:
         point debugPoint;
         float minMax[2];

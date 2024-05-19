@@ -112,8 +112,10 @@ void polygon::renderPolygon()
         bufferNewData();
     }
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(*basePosition + positionOffset, layer));
-    model = glm::rotate(model, glm::radians(*baseRotation + rotationOffset), glm::vec3(0, 0, -1));
+    model = glm::translate(model, glm::vec3(*basePosition, layer));
+    model = glm::rotate(model, glm::radians(*baseRotation), glm::vec3(0, 0, -1));
+    model = glm::translate(model, glm::vec3(positionOffset, 0));
+    model = glm::rotate(model, glm::radians(rotationOffset), glm::vec3(0, 0, -1));
     model = glm::scale(model, glm::vec3(*baseScale * scaleOffset, 0));
     int modelLoc = glGetUniformLocation(currentShader, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

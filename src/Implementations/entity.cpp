@@ -43,7 +43,11 @@ void entity::setPosition(float x, float y)
 void entity::setScale(float x, float y)
 {
     scale = glm::vec2(x, y);
-    if(contain[1]) polygonColliderInstance.updatePoints();
+    if(contain[1])
+    {
+        polygonColliderInstance.updatePoints();
+        polygonColliderInstance.updateFurthestPoint();
+    }
 }
 void entity::setRotation(float degrees)
 {

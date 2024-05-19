@@ -45,6 +45,7 @@ int main() {
     // rect.polygonInstance.initPolygon(4, tempVertices, 6, indices);
     rect.polygonInstance.setLayer(1);
     rect.polygonInstance.setColor(glm::vec3(0.5f, 0.5f, 0.7f));
+    rect.polygonInstance.setPositionOffset(40, 40);
     rect.setScale(40, 40);
 
     r.layer = 1;
@@ -137,7 +138,8 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         rect.setRotation(rect.rotation + 50 * deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.setRotation(rect.rotation - 50 * deltaTime);   
+        rect.polygonInstance.setRotationOffset(rect.polygonInstance.rotationOffset - 100 * deltaTime);
+        // rect.setRotation(rect.rotation - 50 * deltaTime);   
 }
 void processWireframeChange(GLFWwindow* window) 
 {

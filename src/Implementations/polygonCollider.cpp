@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>  
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/norm.hpp>
 #include "Physics/polygonCollider.h"
 
 polygonCollider::polygonCollider(glm::vec2 p, glm::vec2 s, float r, std::map<int, entity*>* cs)
@@ -17,7 +18,7 @@ polygonCollider::polygonCollider(glm::vec2 p, glm::vec2 s, float r, std::map<int
     scaleOffset = s;
     rotationOffset = r;
     debugPoint = point(0, 0, 3);
-    debugPoint.setColor(glm::vec3(1.0f, 1.0f, 0.0f));
+    furthestDistance = -1;
 }
 void polygonCollider::updateCollider()
 {
@@ -60,6 +61,7 @@ void polygonCollider::initPolygon(int vertexCount, float* p)
     }
     normalizePoints();
     updatePoints();
+    updateFurthestPoint();
     initialized = true;
 }
 void polygonCollider::initRectangle()
@@ -83,20 +85,34 @@ void polygonCollider::initRectangle()
     }
     normalizePoints();
     updatePoints();
+    updateFurthestPoint();
     initialized = true;
 }
 void polygonCollider::updatePoints()
 {
+    centroid = glm::vec2(0, 0);
     for(int i = 0; i < numVertices * 3; i += 3)
     {
         glm::vec2 point = glm::vec2(vertices[i], vertices[i + 1]);
         points[i / 3] = point * *baseScale * scaleOffset;
         float temp[2] = {points[i / 3].x, points[i / 3].y};
-        points[i / 3].x = temp[0] * cos(glm::radians(-(*baseRotation + rotationOffset))) - temp[1] * sin(glm::radians(-(*baseRotation + rotationOffset)));
-        points[i / 3].y = temp[0] * sin(glm::radians(-(*baseRotation + rotationOffset))) + temp[1] * cos(glm::radians(-(*baseRotation + rotationOffset)));
-        points[i / 3].x += (positionOffset + *basePosition).x;
-        points[i / 3].y += (positionOffset + *basePosition).y;
+        points[i / 3].x = temp[0] * cos(glm::radians(-(rotationOffset))) - temp[1] * sin(glm::radians(-(rotationOffset)));
+        points[i / 3].y = temp[0] * sin(glm::radians(-(rotationOffset))) + temp[1] * cos(glm::radians(-(rotationOffset)));
+        points[i / 3].x += positionOffset.x;
+        points[i / 3].y += positionOffset.y;
+        temp[0] = points[i / 3].x;
+        temp[1] = points[i / 3].y;
+        points[i / 3].x = temp[0] * cos(glm::radians(-(*baseRotation))) - temp[1] * sin(glm::radians(-(*baseRotation)));
+        points[i / 3].y = temp[0] * sin(glm::radians(-(*baseRotation))) + temp[1] * cos(glm::radians(-(*baseRotation)));
+        points[i / 3].x += (*basePosition).x;
+        points[i / 3].y += (*basePosition).y;
+        centroid.x += points[i / 3].x;
+        centroid.y += points[i / 3].y;
+        // points[i / 3].x += (positionOffset + *basePosition).x;
+        // points[i / 3].y += (positionOffset + *basePosition).y;
     }
+    centroid.x /= numVertices;
+    centroid.y /= numVertices;
 }
 void polygonCollider::normalizePoints()
 {
@@ -129,7 +145,7 @@ void polygonCollider::normalizePoints()
     float scale = 1 / std::sqrt(area);
     for(int i = 0; i < numVertices * 3; i += 3)
     {
-        vertices[i] *= scale;;
+        vertices[i] *= scale;
         vertices[i + 1] *= scale;
     }
 }
@@ -138,11 +154,14 @@ void polygonCollider::checkCollisions()
     if(!collisionCallback) return;
     for(auto i = (*entities).begin(); i != (*entities).end(); i++)
     {
-        if(!(*(*i).second).contain[1]) continue;
+        if(!(*(*i).second).contain[1] || !(*(*i).second).polygonColliderInstance.initialized) continue;
         if(i->second->id == id) continue;
         float minOverlap = FLT_MAX;
         glm::vec2 smallestAxis;
         polygonCollider* test = &(*(*i).second).polygonColliderInstance;
+        float centerDist = glm::length2(centroid - (*test).centroid);
+        float radiusDist = furthestDistance + (*test).furthestDistance;
+        if(centerDist > radiusDist * radiusDist) continue;
         std::vector<glm::vec2> axes(numVertices + (*test).numVertices);
         for(int i = 0; i < numVertices; i++)
         {
@@ -238,7 +257,8 @@ void polygonCollider::checkCollisions()
         for(int i = 0; i < clipped.numPoints; i++)
         {
             glUseProgram(debugShaderProgram);
-            debugPoint.layer = 2;
+            debugPoint.setColor(glm::vec3(1.0f, 1.0f, 0.0f));
+            debugPoint.setLayer(3);
             debugPoint.setPosition(clipped.points[i].x, clipped.points[i].y);
             debugPoint.render();
         }
@@ -291,14 +311,6 @@ polygonCollider::edge polygonCollider::findEdge(std::vector<glm::vec2> &points, 
         output.v2 = vNext;
     }
     output.vMax = v1;
-
-    //DEBUG
-    // glUseProgram(debugShaderProgram);
-    // debugPoint.layer = 1;
-    // debugPoint.setPosition(output.v1.x, output.v1.y);
-    // debugPoint.render();
-    // debugPoint.setPosition(output.v2.x, output.v2.y);
-    // debugPoint.render();
     
     return output;
 }
@@ -338,9 +350,33 @@ void polygonCollider::setScaleOffset(float x, float y)
 {
     scaleOffset = glm::vec2(x, y);
     updatePoints();
+    updateFurthestPoint();
+}
+void polygonCollider::updateFurthestPoint()
+{
+    furthestDistance = -1;
+    for(int i = 0; i < numVertices; i++)
+    {
+        glm::vec2 diffVec = centroid - points[i];
+        float possible = glm::length2(diffVec);
+        if(furthestDistance == -1 || possible > furthestDistance)
+            furthestDistance = possible;
+    }
+    furthestDistance = sqrt(furthestDistance);
 }
 void polygonCollider::setRotationOffset(float r)
 {
     rotationOffset = r;
     updatePoints();
+}
+void polygonCollider::renderColliderBounds()
+{
+    debugPoint.setColor(glm::vec3(0.0f, 1.0f, 1.0f));
+    for(int i = 0; i < numVertices; i++)
+    {
+        glUseProgram(debugShaderProgram);
+        debugPoint.setPosition(points[i].x, points[i].y);
+        debugPoint.setLayer(2);
+        debugPoint.render();
+    }
 }

@@ -13,6 +13,8 @@
 #include <Objects/point.h>
 #include <list>
 #include <map>
+#include <math.h>
+#include <Physics/rayData.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -32,10 +34,13 @@ int counter = 0;
 
 std::map<int, entity*> entities;
 
-entity bottomFloor(glm::vec2(0, -300), glm::vec2(40, 40), 0, &entities, &counter);
+entity bottomFloor(glm::vec2(20, -5), glm::vec2(10, 10), 0, &entities, &counter);
 entity rect(glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter);
+entity rect2(glm::vec2(0, -300), glm::vec2(40, 40), 0, &entities, &counter);
 
-ray r(glm::vec2(0, 0), glm::vec2(1, 0), 5);
+
+ray r(glm::vec2(0, 0), glm::vec2(1, 0), 60, &entities);
+point rDebugPoint(0, 0, 6);
 
 int main() {
     rect.addPolygon();
@@ -45,16 +50,26 @@ int main() {
     bottomFloor.addPolygon();
     bottomFloor.polygonInstance.initRectangle();
     bottomFloor.polygonInstance.setColor(glm::vec3(0.8f, 0.4f, 0.6f));
+    rect2.addPolygon();
+    rect2.polygonInstance.initRectangle();
+    rect2.polygonInstance.setColor(glm::vec3(0.2f, 0.4f, 0.3f));
 
     rect.addPolygonCollider();
     rect.polygonColliderInstance.initRectangle();
     bottomFloor.addPolygonCollider();
     bottomFloor.polygonColliderInstance.initRectangle();
+    rect2.addPolygonCollider();
+    rect2.polygonColliderInstance.initRectangle();
 
+    rect.polygonColliderInstance.setPositionOffset(40, 40);
+    rect.polygonInstance.setPositionOffset(40, 40);
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;
 
     r.layer = 1;
+
+    rDebugPoint.setColor(glm::vec3(1, 1, 1));
+    rDebugPoint.setLayer(2);
 
 
     glfwInit();
@@ -113,10 +128,28 @@ int main() {
         shader.use();
         rect.polygonInstance.render();
         bottomFloor.polygonInstance.render();
+        rect2.polygonInstance.render();
         rect.polygonColliderInstance.updateCollider();
         bottomFloor.polygonColliderInstance.updateCollider();
+        rect2.polygonColliderInstance.updateCollider();
         rayShader.use();
         r.render();
+        std::vector<rayData> rdata = r.getCollisions();
+        // std::pair<bool, rayData> rdata2 = r.getFirstCollision();
+        rect.polygonColliderInstance.renderColliderBounds();
+        // if(rdata2.first)
+        // {
+        //     rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
+        //     rDebugPoint.render();
+        // }
+        for(int i = 0; i < rdata.size(); i++) 
+        {
+            rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
+            rDebugPoint.render();
+        }
+        // glm::vec2 furthest = rect.position + rect.polygonColliderInstance.positionOffset + rect.polygonColliderInstance.furthestDistance * glm::vec2(0, 1);
+        // rDebugPoint.setPosition(furthest.x, furthest.y);
+        rDebugPoint.render();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
