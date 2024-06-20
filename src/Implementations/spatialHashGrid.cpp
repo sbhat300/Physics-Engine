@@ -94,7 +94,7 @@ void spatialHashGrid::add(polygonCollider* obj)
             
         }
     }
-}
+} 
 std::vector<polygonCollider*> spatialHashGrid::getNearby(polygonCollider* obj)
 {
     std::vector<polygonCollider*> out;
