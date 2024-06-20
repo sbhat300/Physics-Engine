@@ -122,7 +122,7 @@ std::vector<rayData> ray::getCollisions()
             rayData out;
             out.collisionNormal = normal;
             out.collisionPoint = point;
-            out.id == (*current).id;
+            out.id = (*current).id;
             output.push_back(out);
         }
     }
