@@ -2,22 +2,30 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: g++.exe build active file",
-            "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
+            "label": "C/C++: clang++ build active file",
+            "command": "/usr/bin/clang++",
             "args": [
-                "-fdiagnostics-color=always",
+                "-fcolor-diagnostics",
+                "-fansi-escape-codes",
+                "-Wall",
                 "-g",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "${file}",
-                "${workspaceFolder}\\src\\*.c",
-                "${workspaceFolder}\\src\\Implementations\\*.cpp",
-                "-IC:\\msys64\\mingw64\\include",
+
+                "-std=c++17",
                 "-I${workspaceFolder}/include",
-                "-L${workspaceFolder}\\lib",
-                "-lglfw3",
-                "-lopengl32",
-                "-lgdi32"
+                "-L${workspaceFolder}/lib",
+
+                "${workspaceFolder}/src/*.c",
+                "${workspaceFolder}/src/Implementations/*.cpp",
+                "${workspaceFolder}/lib/libglfw.3.4.dylib",
+                
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "${file}",
+
+                "-framework",
+                "OpenGL",
+
+                "-Wno-deprecated"
             ],
             "options": {
                 "cwd": "${fileDirname}"

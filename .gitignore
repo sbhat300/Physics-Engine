@@ -1,4 +1,7 @@
-.vscode/c_cpp_properties.json
+.vscode/
 src/glad.c
-include/KHR/khrplatform.h
-include/glad/glad.h
+include/KHR/
+include/glad/
+include/GLFW/
+include/glad
+lib/libglfw.3.4.dylib
