@@ -4,14 +4,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <math.h>    
-#include <map>
+#include <unordered_map>
 #include <entity.h>
 #include "Physics/ray.h"
 #include <Physics/rayData.h>
 #include <vector>
 #include <Objects/point.h>
 
-ray::ray(glm::vec2 o, glm::vec2 d, float l, std::map<int, entity*>* e)
+ray::ray(glm::vec2 o, glm::vec2 d, float l, std::unordered_map<int, entity*>* e)
 {
     origin = o;
     direction = glm::normalize(d);

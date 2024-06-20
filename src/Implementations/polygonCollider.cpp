@@ -1,24 +1,27 @@
 #include <entity.h>
+#include <Physics/spatialHashGrid.h>
 #include <Objects/point.h>
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <functional>
 #include <vector>
 #include <algorithm>  
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/norm.hpp>
+#include <set>
 #include "Physics/polygonCollider.h"
 
-polygonCollider::polygonCollider(glm::vec2 p, glm::vec2 s, float r, std::map<int, entity*>* cs)
+polygonCollider::polygonCollider(glm::vec2 p, glm::vec2 s, float r, spatialHashGrid* spg)
 {
     initialized = false;
-    entities = cs;
     collide = false;
     positionOffset = p;
     scaleOffset = s;
     rotationOffset = r;
     debugPoint = point(0, 0, 3);
     furthestDistance = -1;
+    grid = spg;
+    queryID = 0;
 }
 void polygonCollider::updateCollider()
 {
@@ -32,6 +35,7 @@ void polygonCollider::setCollisionCallback(std::function<void(int, int, glm::vec
 bool polygonCollider::pointInPolygon(glm::vec2 point)
 {
     float neg = 0, pos = 0;
+    if(glm::length2(centroid - point) > furthestDistance * furthestDistance) return false;
     for(int i = 0; i < numVertices; i++)
     {
         int vNext = i + 1;
@@ -91,6 +95,7 @@ void polygonCollider::initRectangle()
 void polygonCollider::updatePoints()
 {
     centroid = glm::vec2(0, 0);
+    (*grid).remove(this);
     for(int i = 0; i < numVertices * 3; i += 3)
     {
         glm::vec2 point = glm::vec2(vertices[i], vertices[i + 1]);
@@ -108,9 +113,19 @@ void polygonCollider::updatePoints()
         points[i / 3].y += (*basePosition).y;
         centroid.x += points[i / 3].x;
         centroid.y += points[i / 3].y;
-        // points[i / 3].x += (positionOffset + *basePosition).x;
-        // points[i / 3].y += (positionOffset + *basePosition).y;
     }
+    maxX = points[0].x;
+    minX = points[0].x;
+    maxY = points[0].y;
+    minY = points[0].y;
+    for(int i = 0; i < numVertices * 3; i += 3)
+    {
+        minX = std::min(minX, points[i / 3].x);
+        maxX = std::max(maxX, points[i / 3].x);
+        minY = std::min(minY, points[i / 3].y);
+        maxY = std::max(maxY, points[i / 3].y);
+    }
+    (*grid).add(this);
     centroid.x /= numVertices;
     centroid.y /= numVertices;
 }
@@ -152,13 +167,14 @@ void polygonCollider::normalizePoints()
 void polygonCollider::checkCollisions()
 {
     if(!collisionCallback) return;
-    for(auto i = (*entities).begin(); i != (*entities).end(); i++)
+    std::vector<polygonCollider*> colliders;
+    colliders = (*grid).getNearby(this);
+    for(auto i = colliders.begin(); i != colliders.end(); i++)
     {
-        if(!(*(*i).second).contain[1] || !(*(*i).second).polygonColliderInstance.initialized) continue;
-        if(i->second->id == id) continue;
+        if((*(*i)).id == id) continue;
         float minOverlap = FLT_MAX;
         glm::vec2 smallestAxis;
-        polygonCollider* test = &(*(*i).second).polygonColliderInstance;
+        polygonCollider* test = *i;
         float centerDist = glm::length2(centroid - (*test).centroid);
         float radiusDist = furthestDistance + (*test).furthestDistance;
         if(centerDist > radiusDist * radiusDist) continue;

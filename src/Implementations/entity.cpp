@@ -4,10 +4,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <map>
+#include <unordered_map>
+#include <Physics/spatialHashGrid.h>
 #include "entity.h"
 
-entity::entity(glm::vec2 p, glm::vec2 s, float r, std::map<int, entity*>* e, int* counter)
+entity::entity(glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity*>* e, int* counter)
 {
     id = *counter;
     position = p;
@@ -25,9 +26,9 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
     polygonInstance.baseRotation = &rotation;
     contain[0] = true;
 }
-void entity::addPolygonCollider(glm::vec2 p, glm::vec2 s, float r)
+void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
 {
-    polygonColliderInstance = polygonCollider(p, s, r, entities);
+    polygonColliderInstance = polygonCollider(p, s, r, spg);
     polygonColliderInstance.basePosition = &position;
     polygonColliderInstance.baseScale = &scale;
     polygonColliderInstance.baseRotation = &rotation;

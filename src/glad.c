@@ -52,7 +52,7 @@ static PFNWGLGETPROCADDRESSPROC_PRIVATE gladGetProcAddressPtr;
 #define IS_UWP 1
 #endif
 #endif
-
+ 
 static
 int open_gl(void) {
 #ifndef IS_UWP

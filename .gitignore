@@ -1,0 +1,4 @@
+.vscode/c_cpp_properties.json
+src/glad.c
+include/KHR/khrplatform.h
+include/glad/glad.h

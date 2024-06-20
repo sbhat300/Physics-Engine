@@ -1,9 +1,10 @@
 #ifndef POLYGONCOLLIDER_H
 #define POLYGONCOLLIDER_H
 class entity;
+class spatialHashGrid;
 #include <Objects/point.h>
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <functional>
 #include <vector>
 #include <algorithm>  
@@ -23,7 +24,6 @@ class polygonCollider
 
         int id;
         bool collide;
-        std::map<int, entity*>* entities;
         std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> collisionCallback;
         int debugShaderProgram;
         std::vector<glm::vec2> points;
@@ -36,10 +36,15 @@ class polygonCollider
         float* baseRotation;
         bool initialized;
         float furthestDistance;
+        float minX, maxX, minY, maxY;
         glm::vec2 centroid;
+        spatialHashGrid* grid;
+        unsigned int queryID;
+        std::pair<int, int> minIndices;
+        std::pair<int, int> maxIndices;
+        std::vector<std::vector<int>> shgIndex;
 
-        polygonCollider(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, 
-                            std::map<int, entity*>* cs = 0);
+        polygonCollider(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, spatialHashGrid* spg = 0);
         void updateCollider();
         void setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
         bool pointInPolygon(glm::vec2 point);

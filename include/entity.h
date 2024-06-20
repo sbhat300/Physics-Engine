@@ -17,11 +17,11 @@ class entity
         glm::vec2 previousPos;
         float rotation;   
         int id;
-        std::map<int, entity*>* entities;
+        std::unordered_map<int, entity*>* entities;
 
-        entity(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, std::map<int, entity*>* e = 0, int* counter = 0);
+        entity(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, std::unordered_map<int, entity*>* e = 0, int* counter = 0);
         void addPolygon(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
-        void addPolygonCollider(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
+        void addPolygonCollider(spatialHashGrid* spg = 0, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void setPosition(float x, float y);
         void setScale(float x, float y);
         void setRotation(float degrees);
