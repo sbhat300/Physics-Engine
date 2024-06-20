@@ -90,7 +90,7 @@ void spatialHashGrid::add(polygonCollider* obj)
             (*obj).minIndices = lower;
             (*obj).maxIndices = upper;
             std::cout << i - lower.first << " " << j - lower.second << std::endl;
-            // (*obj).shgIndex[i - lower.first][j - lower.second] = grid[i][j].size() - 1;
+            (*obj).shgIndex[i - lower.first][j - lower.second] = grid[i][j].size() - 1;
             
         }
     }
