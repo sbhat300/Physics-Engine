@@ -1,6 +1,9 @@
+temp.txt
 .vscode/
 src/glad.c
 include/KHR
 include/glad/
 include/GLFW/
 lib/libglfw.3.4.dylib
+include/glm/
+src/collisions.dSYM/
