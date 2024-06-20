@@ -1,0 +1,5 @@
+
+Shader shader("D:/Physics-Engine/shaders/gravityVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+Shader pointShader("D:/Physics-Engine/shaders/pointVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+Shader rayShader("D:/Physics-Engine/shaders/rayVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+

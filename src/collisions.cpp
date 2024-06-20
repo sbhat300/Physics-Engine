@@ -107,9 +107,11 @@ int main() {
 
     
 
-    Shader shader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader pointShader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/pointVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader rayShader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/rayVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
+   
+    Shader shader("D:/Physics-Engine/shaders/gravityVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader pointShader("D:/Physics-Engine/shaders/pointVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader rayShader("D:/Physics-Engine/shaders/rayVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+
 
     configureShader(shader);
     configureShader(pointShader);
