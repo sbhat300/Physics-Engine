@@ -68,10 +68,6 @@ int main() {
     rect.polygonInstance.setPositionOffset(40, 40);
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;
-    
-    std::cout << std::endl;
-    std::cout << grid.grid[2][0].back() << std::endl;
-    std::cout << &rect2 << std::endl;
 
     r.layer = 1;
 
@@ -85,6 +81,11 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    #ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    #endif
+
     GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
     if (window == NULL)
     {
@@ -105,12 +106,9 @@ int main() {
     glEnable(GL_PROGRAM_POINT_SIZE);  
     glEnable(GL_DEPTH_TEST);  
 
-    
-
-   
-    Shader shader("D:/Physics-Engine/shaders/gravityVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader pointShader("D:/Physics-Engine/shaders/pointVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader rayShader("D:/Physics-Engine/shaders/rayVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader shader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader pointShader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/pointVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader rayShader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/rayVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
 
 
     configureShader(shader);
@@ -160,12 +158,12 @@ int main() {
             rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
             rDebugPoint.render();
         }
-        
-        // std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
-        // for(auto i = b.begin(); i != b.end(); i++)
-        // {
-        //     std::cout << (*(*i)).id << std::endl;
-        // }
+        // std::cout << &(rect.polygonColliderInstance) << " " << &(rect2.polygonColliderInstance) << " " << &(bottomFloor.polygonColliderInstance) << std::endl;
+        std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
+        for(auto i = b.begin(); i != b.end(); i++)
+        {
+            std::cout << (*(*i)).id << std::endl;
+        }
         // std::cout << std::endl;
         // std::pair<int, int> a = grid.getCellIndex(rect.position.x, rect.position.y);
         // for(auto i : grid.grid[a.first][a.second])
@@ -174,6 +172,7 @@ int main() {
         // }
         // std::cout << std::endl;
         // std::cout << a.first << " " << a.second << std::endl;
+        rect2.setPosition(rect2.position.x, -300 + 100 * sin(glfwGetTime()));
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -237,7 +236,7 @@ void setCamSettings()
 }
 void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
-    std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
+    // std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {

@@ -74,24 +74,19 @@ void spatialHashGrid::add(polygonCollider* obj)
 {
     std::pair<int, int> lower = getCellIndex((*obj).minX, (*obj).minY);
     std::pair<int, int> upper = getCellIndex((*obj).maxX, (*obj).maxY);
+    (*obj).minIndices.first = lower.first;
+    (*obj).minIndices.second = lower.second;
+    (*obj).maxIndices.first = upper.first;
+    (*obj).maxIndices.second = upper.second;
     (*obj).shgIndex.resize(upper.first - lower.first + 1);
-    if(upper.first - lower.first + 1 != (*obj).shgIndex[0].size())
-    {
-        for(int i = 0; i < upper.first - lower.first + 1; i++)
-        {
-            grid[i].resize(upper.second - lower.second + 1);
-        }
-    }
     for(int i = lower.first; i <= upper.first; i++)
     {
+        int xInd = i - lower.first;
+        (*obj).shgIndex[xInd].clear();
         for(int j = lower.second; j <= upper.second; j++)
         {
             grid[i][j].push_back(obj);
-            (*obj).minIndices = lower;
-            (*obj).maxIndices = upper;
-            std::cout << i - lower.first << " " << j - lower.second << std::endl;
-            // (*obj).shgIndex[i - lower.first][j - lower.second] = grid[i][j].size() - 1;
-            
+            (*obj).shgIndex[xInd].push_back(grid[i][j].size() - 1);
         }
     }
 } 
@@ -121,9 +116,11 @@ void spatialHashGrid::remove(polygonCollider* obj)
     {
         for(int j = (*obj).minIndices.second; j <= (*obj).maxIndices.second; j++)
         {
-            
-            // grid[i][j][(*obj).shgIndex[i][j]] = grid[i][j].back();
-            // grid[i][j].pop_back();
+            int pos = (*obj).shgIndex[i - (*obj).minIndices.first][j - (*obj).minIndices.second];
+            polygonCollider* second = grid[i][j].back();
+            grid[i][j][pos] = second;
+            (*second).shgIndex[i - (*second).minIndices.first][j - (*second).minIndices.second] = pos;
+            grid[i][j].pop_back();
         }
     }
 }

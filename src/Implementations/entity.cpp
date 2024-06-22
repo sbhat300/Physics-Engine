@@ -28,7 +28,7 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
 }
 void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
 {
-    polygonColliderInstance = polygonCollider(p, s, r, spg);
+    polygonColliderInstance = polygonCollider(spg, p, s, r);
     polygonColliderInstance.basePosition = &position;
     polygonColliderInstance.baseScale = &scale;
     polygonColliderInstance.baseRotation = &rotation;

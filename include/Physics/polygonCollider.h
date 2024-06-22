@@ -44,13 +44,16 @@ class polygonCollider
         std::pair<int, int> maxIndices;
         std::vector<std::vector<int>> shgIndex;
 
-        polygonCollider(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, spatialHashGrid* spg = 0);
+        polygonCollider();
+        polygonCollider(spatialHashGrid* spg, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void updateCollider();
         void setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
         bool pointInPolygon(glm::vec2 point);
         void initPolygon(int vertexCount, float* p);
         void initRectangle();
+        void calcPoints();
         void updatePoints();
+        void updatePointsNoRemove();
         void normalizePoints();
         void setPositionOffset(float x, float y);
         void setScaleOffset(float x, float y);

@@ -11,7 +11,8 @@
 #include <set>
 #include "Physics/polygonCollider.h"
 
-polygonCollider::polygonCollider(glm::vec2 p, glm::vec2 s, float r, spatialHashGrid* spg)
+polygonCollider::polygonCollider(){}
+polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
 {
     initialized = false;
     collide = false;
@@ -64,7 +65,7 @@ void polygonCollider::initPolygon(int vertexCount, float* p)
         extraOffset++;
     }
     normalizePoints();
-    updatePoints();
+    updatePointsNoRemove();
     updateFurthestPoint();
     initialized = true;
 }
@@ -88,14 +89,30 @@ void polygonCollider::initRectangle()
         extraOffset++;
     }
     normalizePoints();
-    updatePoints();
+    updatePointsNoRemove();
     updateFurthestPoint();
     initialized = true;
 }
 void polygonCollider::updatePoints()
 {
-    centroid = glm::vec2(0, 0);
+    calcPoints();
+    std::pair<int, int> lower = (*grid).getCellIndex(minX, minY);
+    std::pair<int, int> upper = (*grid).getCellIndex(maxX, maxY);
+    if( lower.first == minIndices.first &&
+        lower.second == minIndices.second &&
+        upper.first == maxIndices.first &&
+        upper.second == maxIndices.second) return;
     (*grid).remove(this);
+    (*grid).add(this);
+}
+void polygonCollider::updatePointsNoRemove()
+{
+    calcPoints();
+    (*grid).add(this);
+}
+void polygonCollider::calcPoints()
+{
+    centroid = glm::vec2(0, 0);
     for(int i = 0; i < numVertices * 3; i += 3)
     {
         glm::vec2 point = glm::vec2(vertices[i], vertices[i + 1]);
@@ -125,7 +142,6 @@ void polygonCollider::updatePoints()
         minY = std::min(minY, points[i / 3].y);
         maxY = std::max(maxY, points[i / 3].y);
     }
-    (*grid).add(this);
     centroid.x /= numVertices;
     centroid.y /= numVertices;
 }
@@ -229,7 +245,6 @@ void polygonCollider::checkCollisions()
         edge edge2 = findEdge((*test).points, (*test).numVertices, -smallestAxis);
         glm::vec2 referenceVector;
         edge reference, incident;
-        bool flip = false;
         if(abs(glm::dot(glm::normalize(edge1.v2 - edge1.v1), smallestAxis)) <= glm::dot(glm::normalize(edge2.v2 - edge2.v1), smallestAxis))
         {
             reference = edge1;
@@ -241,7 +256,6 @@ void polygonCollider::checkCollisions()
             reference = edge2;
             referenceVector = glm::normalize(edge2.v2 - edge2.v1);
             incident = edge1;
-            flip = true;
         }
         float offset = glm::dot(referenceVector, reference.v1);
         clippedPoints clipped = clipPoints(&incident.v1, &incident.v2, &referenceVector, &offset);
@@ -393,6 +407,7 @@ void polygonCollider::renderColliderBounds()
         glUseProgram(debugShaderProgram);
         debugPoint.setPosition(points[i].x, points[i].y);
         debugPoint.setLayer(2);
+        debugPoint.size = 6;
         debugPoint.render();
     }
 }
