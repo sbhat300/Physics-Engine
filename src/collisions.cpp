@@ -39,11 +39,12 @@ entity bottomFloor(glm::vec2(20, -5), glm::vec2(10, 10), 0, &entities, &counter)
 entity rect(glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter);
 entity rect2(glm::vec2(0, -300), glm::vec2(40, 100), 0, &entities, &counter);
 
-ray r(glm::vec2(-100, 50), glm::vec2(0.4, -0.2), 60, &entities);
-
 point rDebugPoint(0, 0, 6);
 
 spatialHashGrid grid(500, 500, glm::vec2(4, 4), glm::vec2(-300, -400));
+
+ray r(glm::vec2(-100, 50), glm::vec2(0.4, -0.2), 50, &grid);
+
 
 int main() {
     rect.addPolygon();
@@ -69,7 +70,6 @@ int main() {
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;
 
-    r.grid = &grid;
     r.layer = 1;
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -146,19 +146,19 @@ int main() {
         rayShader.use();
         r.render();
         grid.drawGrid();
-        std::vector<rayData> rdata = r.getCollisions();
-        // std::pair<bool, rayData> rdata2 = r.getFirstCollision();
+        std::pair<bool, rayData> rdata2 = r.getFirstCollision();
         rect.polygonColliderInstance.renderColliderBounds();
-        // if(rdata2.first)
-        // {
-        //     rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
-        //     rDebugPoint.render();
-        // }
-        for(int i = 0; i < rdata.size(); i++) 
+        if(rdata2.first)
         {
-            rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
+            rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
             rDebugPoint.render();
         }
+        // std::vector<rayData> rdata = r.getCollisions();
+        // for(int i = 0; i < rdata.size(); i++) 
+        // {
+        //     rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
+        //     rDebugPoint.render();
+        // }
         // std::cout << &(rect.polygonColliderInstance) << " " << &(rect2.polygonColliderInstance) << " " << &(bottomFloor.polygonColliderInstance) << std::endl;
         // std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
         // for(auto i = b.begin(); i != b.end(); i++)

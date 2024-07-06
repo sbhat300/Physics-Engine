@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <Physics/ray.h>
+#include <Physics/rayData.h>
 
 class spatialHashGrid
 {
@@ -22,6 +23,7 @@ class spatialHashGrid
         std::vector<polygonCollider*> getNearby(polygonCollider* obj);
         std::vector<polygonCollider*> getNearby(float x, float y);
         std::vector<polygonCollider*> getNearbyRay(ray* r);
+        std::pair<bool, rayData> getNearbyRaySingle(ray* r);
         void drawGrid();
         void setLayer(int l);
         void setColor(glm::vec3 col);

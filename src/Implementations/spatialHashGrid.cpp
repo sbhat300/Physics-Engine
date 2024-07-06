@@ -232,5 +232,70 @@ std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
         }
     }
     return output;
-    
+}
+std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
+{
+    glm::vec2 secondPoint = (*r).origin + (*r).direction * (*r).length;
+    std::pair<int, int> lower = getCellIndexNoClamp((*r).origin.x, (*r).origin.y);
+    std::pair<int, int> upper = getCellIndexNoClamp(secondPoint.x, secondPoint.y);
+    int stepX, stepY;
+    float xLength = (*r).direction.x * (*r).length;
+    float yLength = (*r).direction.y * (*r).length;
+    std::pair<bool, rayData> test;
+    if(lower.first == upper.first && lower.second == upper.second)
+    {
+        test = (*r).getFirstCollision(&grid[clamp(lower.first, 0, numCells.x - 1)][clamp(lower.second, 0, numCells.y - 1)]);
+        if(test.first) return test;
+    }
+    float tMaxX, tMaxY;
+    if((*r).direction.x > 0)
+    {
+        tMaxX = std::abs((start.x + (lower.first + 1) * cellWidth - (*r).origin.x) / xLength);
+        stepX = 1;
+    }
+    else
+    {
+        tMaxX = std::abs(((*r).origin.x - (start.x + lower.first * cellWidth)) / xLength);
+        stepX = -1;
+    }
+    if((*r).direction.y > 0) 
+    { 
+        tMaxY = std::abs((start.y + (lower.second + 1) * cellHeight - (*r).origin.y) / yLength);
+        stepY = 1;
+    }
+    else
+    {
+        tMaxY = std::abs(((*r).origin.y - (start.y + lower.second * cellHeight)) / yLength);
+        stepY = -1;
+    }
+    float tDeltaX = std::abs(cellWidth / xLength);
+    float tDeltaY = std::abs(cellHeight / yLength);
+    queryID++;
+    do
+    {
+        int xInd = clamp(lower.first, 0, numCells.x - 1);
+        int yInd = clamp(lower.second, 0, numCells.y - 1);
+        test = (*r).getFirstCollision(&grid[xInd][yInd]);
+        if(test.first) return test;
+        if(tMaxX == tMaxY)
+        {
+            int next = xInd + stepX;
+            test = (*r).getFirstCollision(&grid[next][yInd]);
+            if(test.first) return test;
+        }
+        if(tMaxX < tMaxY)
+        {
+            tMaxX += tDeltaX;
+            lower.first += stepX;
+
+        }
+        else
+        {
+            tMaxY += tDeltaY;
+            lower.second += stepY;
+        }
+    } while (tMaxX <= 1 || tMaxY <= 1);
+    std::vector<polygonCollider*> lastCell = getNearby(secondPoint.x, secondPoint.y);
+    test = (*r).getFirstCollision(&lastCell);
+    return test;
 }

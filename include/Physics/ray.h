@@ -7,6 +7,7 @@ class spatialHashGrid;
 #include <Physics/rayData.h>
 #include <vector>
 #include <Objects/point.h>
+#include <Physics/polygonCollider.h>
 
 class ray
 {
@@ -16,10 +17,9 @@ class ray
         glm::vec3 color;
         float length;
         float layer;
-        std::unordered_map<int, entity*>* entities;
         spatialHashGrid* grid;
 
-        ray(glm::vec2 o = glm::vec2(0, 0), glm::vec2 d = glm::vec2(0, 1), float l = 0, std::unordered_map<int, entity*>* e = 0);
+        ray(glm::vec2 o = glm::vec2(0, 0), glm::vec2 d = glm::vec2(0, 1), float l = 0, spatialHashGrid* g = 0);
         void render();
         void setColor(glm::vec3 col);
         void setLayer(int l);
@@ -27,6 +27,7 @@ class ray
         float getLineIntersection(glm::vec2* point1, glm::vec2* point2);
         std::vector<rayData> getCollisions();
         std::pair<bool, rayData> getFirstCollision();
+        std::pair<bool, rayData> getFirstCollision(std::vector<polygonCollider*>* tests);
     private:
         unsigned int rayVAO, rayVBO;
         void drawRay();

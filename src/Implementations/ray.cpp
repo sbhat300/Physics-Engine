@@ -5,14 +5,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <math.h>    
 #include <unordered_map>
-#include <entity.h>
 #include "Physics/ray.h"
 #include <Physics/rayData.h>
 #include <vector>
 #include <Objects/point.h>
 #include <Physics/spatialHashGrid.h>
 
-ray::ray(glm::vec2 o, glm::vec2 d, float l, std::unordered_map<int, entity*>* e)
+ray::ray(glm::vec2 o, glm::vec2 d, float l, spatialHashGrid* g)
 {
     origin = o;
     direction = glm::normalize(d);
@@ -21,7 +20,7 @@ ray::ray(glm::vec2 o, glm::vec2 d, float l, std::unordered_map<int, entity*>* e)
     layer = 1;
     rayVAO = 0;
     rayVBO = 0;
-    entities = e;
+    grid = g;
 }
 void ray::render()
 {
@@ -131,13 +130,16 @@ std::vector<rayData> ray::getCollisions()
 }
 std::pair<bool, rayData> ray::getFirstCollision()
 {
+    return (*grid).getNearbyRaySingle(this);
+}
+std::pair<bool, rayData> ray::getFirstCollision(std::vector<polygonCollider*>* tests)
+{
     float t = FLT_MAX;
     glm::vec2 point = origin;
     glm::vec2 normal = direction;
     bool collide = false;
     int id = -1;
-    std::vector<polygonCollider*> possibleCollisions = (*grid).getNearbyRay(this);
-    for(auto i = possibleCollisions.begin(); i != possibleCollisions.end(); i++)
+    for(auto i = (*tests).begin(); i != (*tests).end(); i++)
     {
         polygonCollider* current = *i;
         for(int j = 0; j < (*current).numVertices; j++)
