@@ -10,6 +10,7 @@
 #include <Physics/rayData.h>
 #include <vector>
 #include <Objects/point.h>
+#include <Physics/spatialHashGrid.h>
 
 ray::ray(glm::vec2 o, glm::vec2 d, float l, std::unordered_map<int, entity*>* e)
 {
@@ -91,11 +92,11 @@ float ray::crossVectors(glm::vec2* point1, glm::vec2* point2)
 }
 std::vector<rayData> ray::getCollisions()
 {
+    std::vector<polygonCollider*> possibleCollisions = (*grid).getNearbyRay(this);
     std::vector<rayData> output;
-    for(auto i = (*entities).begin(); i != (*entities).end(); i++)
+    for(auto i = possibleCollisions.begin(); i != possibleCollisions.end(); i++)
     {
-        if(!(*(*i).second).contain[1]) continue;
-        polygonCollider* current = &(*(*i).second).polygonColliderInstance;
+        polygonCollider* current = *i;
         float t = FLT_MAX;
         bool collide = false;
         glm::vec2 point = origin;
@@ -135,10 +136,10 @@ std::pair<bool, rayData> ray::getFirstCollision()
     glm::vec2 normal = direction;
     bool collide = false;
     int id = -1;
-    for(auto i = (*entities).begin(); i != (*entities).end(); i++)
+    std::vector<polygonCollider*> possibleCollisions = (*grid).getNearbyRay(this);
+    for(auto i = possibleCollisions.begin(); i != possibleCollisions.end(); i++)
     {
-        if(!(*(*i).second).contain[1]) continue;
-        polygonCollider* current = &(*(*i).second).polygonColliderInstance;
+        polygonCollider* current = *i;
         for(int j = 0; j < (*current).numVertices; j++)
         {
             int jNext = j + 1;

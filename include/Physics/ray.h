@@ -1,6 +1,7 @@
 #ifndef RAY_H
 #define RAY_H
 
+class spatialHashGrid;
 #include <glm/glm.hpp>
 #include <unordered_map>
 #include <Physics/rayData.h>
@@ -16,6 +17,7 @@ class ray
         float length;
         float layer;
         std::unordered_map<int, entity*>* entities;
+        spatialHashGrid* grid;
 
         ray(glm::vec2 o = glm::vec2(0, 0), glm::vec2 d = glm::vec2(0, 1), float l = 0, std::unordered_map<int, entity*>* e = 0);
         void render();

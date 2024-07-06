@@ -39,8 +39,8 @@ entity bottomFloor(glm::vec2(20, -5), glm::vec2(10, 10), 0, &entities, &counter)
 entity rect(glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter);
 entity rect2(glm::vec2(0, -300), glm::vec2(40, 100), 0, &entities, &counter);
 
+ray r(glm::vec2(-100, 50), glm::vec2(0.4, -0.2), 60, &entities);
 
-ray r(glm::vec2(0, 0), glm::vec2(1, 0), 60, &entities);
 point rDebugPoint(0, 0, 6);
 
 spatialHashGrid grid(500, 500, glm::vec2(4, 4), glm::vec2(-300, -400));
@@ -69,6 +69,7 @@ int main() {
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;
 
+    r.grid = &grid;
     r.layer = 1;
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -159,20 +160,26 @@ int main() {
             rDebugPoint.render();
         }
         // std::cout << &(rect.polygonColliderInstance) << " " << &(rect2.polygonColliderInstance) << " " << &(bottomFloor.polygonColliderInstance) << std::endl;
-        std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
-        for(auto i = b.begin(); i != b.end(); i++)
-        {
-            std::cout << (*(*i)).id << std::endl;
-        }
+        // std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
+        // for(auto i = b.begin(); i != b.end(); i++)
+        // {
+        //     std::cout << (*(*i)).id << std::endl;
+        // }
+        // std::vector<polygonCollider*> b = grid.getNearby(rect.position.x, rect.position.y);
+        // for(auto i = b.begin(); i != b.end(); i++)
+        // {
+        //     std::cout << (*(*i)).id << std::endl;
+        // }
         // std::cout << std::endl;
-        // std::pair<int, int> a = grid.getCellIndex(rect.position.x, rect.position.y);
+        // std::pair<int, int> a = grid.getCellIndexNoClamp(rect.position.x, rect.position.y);
+        // std::cout << a.first << " " << a.second << std::endl;
         // for(auto i : grid.grid[a.first][a.second])
         // {
         //     std::cout << (*i).id << std::endl;
         // }
         // std::cout << std::endl;
         // std::cout << a.first << " " << a.second << std::endl;
-        rect2.setPosition(rect2.position.x, -300 + 100 * sin(glfwGetTime()));
+        // rect2.setPosition(rect2.position.x, -300 + 100 * sin(glfwGetTime()));
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -191,7 +198,8 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(UP, deltaTime);
+        r.length += 100 * deltaTime;
+        // camera.ProcessKeyboard(UP, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -236,7 +244,7 @@ void setCamSettings()
 }
 void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
-    // std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
+    std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {

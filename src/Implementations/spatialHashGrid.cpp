@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
+#include <limits>
 
 #include "Physics/spatialHashGrid.h"
 
@@ -13,12 +14,14 @@ spatialHashGrid::spatialHashGrid(float w, float h, glm::vec2 nc, glm::vec2 s)
     height = h;
     numCells = nc;
     start = s;
-    grid.resize(numCells.x + 1);
-    for(int i = 0; i < numCells.x + 1; i++)
+    grid.resize(numCells.x);
+    for(int i = 0; i < numCells.x; i++)
     {
-        grid[i].resize(numCells.y + 1);
+        grid[i].resize(numCells.y);
     }
     queryID = 1;
+    cellWidth = width / numCells.x;
+    cellHeight = height / numCells.y;
 }
 void spatialHashGrid::setLayer(int l)
 {
@@ -110,6 +113,14 @@ std::vector<polygonCollider*> spatialHashGrid::getNearby(polygonCollider* obj)
     }
     return out;
 }
+std::vector<polygonCollider*> spatialHashGrid::getNearby(float x, float y)
+{
+    std::vector<polygonCollider*> out;
+    std::pair<int, int> ind = getCellIndex(x, y);
+    for(auto object = grid[ind.first][ind.second].begin(); object != grid[ind.first][ind.second].end(); object++)
+        out.push_back(*object);
+    return out;
+}
 void spatialHashGrid::remove(polygonCollider* obj)
 {
     for(int i = (*obj).minIndices.first; i <= (*obj).maxIndices.first; i++)
@@ -128,9 +139,98 @@ std::pair<int, int> spatialHashGrid::getCellIndex(float x, float y)
 {
     float xInd = clamp((x - start.x) / width, 0, 1);
     float yInd = clamp((y - start.y) / height, 0, 1);
+    std::pair<int, int> out(std::min(numCells.x - 1, floor(xInd * (numCells.x))), std::min(numCells.x - 1, floor(yInd * (numCells.y))));
+    return out;
+}
+std::pair<int, int> spatialHashGrid::getCellIndexNoClamp(float x, float y)
+{
+    float xInd = (x - start.x) / width;
+    float yInd = (y - start.y) / height;
     std::pair<int, int> out(floor(xInd * (numCells.x)), floor(yInd * (numCells.y)));
     return out;
 }
 float spatialHashGrid::clamp(float n, float lower, float upper) {
   return std::max(lower, std::min(n, upper));
+}
+std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
+{
+    std::vector<polygonCollider*> output;
+    glm::vec2 secondPoint = (*r).origin + (*r).direction * (*r).length;
+    std::pair<int, int> lower = getCellIndexNoClamp((*r).origin.x, (*r).origin.y);
+    std::pair<int, int> upper = getCellIndexNoClamp(secondPoint.x, secondPoint.y);
+    int stepX, stepY;
+    float xLength = (*r).direction.x * (*r).length;
+    float yLength = (*r).direction.y * (*r).length;
+    if(lower.first == upper.first && lower.second == upper.second) return getNearby((*r).origin.x, (*r).origin.y);
+    float tMaxX, tMaxY;
+    if((*r).direction.x > 0)
+    {
+        tMaxX = std::abs((start.x + (lower.first + 1) * cellWidth - (*r).origin.x) / xLength);
+        stepX = 1;
+    }
+    else
+    {
+        tMaxX = std::abs(((*r).origin.x - (start.x + lower.first * cellWidth)) / xLength);
+        stepX = -1;
+    }
+    if((*r).direction.y > 0) 
+    { 
+        tMaxY = std::abs((start.y + (lower.second + 1) * cellHeight - (*r).origin.y) / yLength);
+        stepY = 1;
+    }
+    else
+    {
+        tMaxY = std::abs(((*r).origin.y - (start.y + lower.second * cellHeight)) / yLength);
+        stepY = -1;
+    }
+    float tDeltaX = std::abs(cellWidth / xLength);
+    float tDeltaY = std::abs(cellHeight / yLength);
+    queryID++;
+    do
+    {
+        int xInd = clamp(lower.first, 0, numCells.x - 1);
+        int yInd = clamp(lower.second, 0, numCells.y - 1);
+        for(auto object = grid[xInd][yInd].begin(); object != grid[xInd][yInd].end(); object++)
+        {
+            if(queryID != (*(*object)).queryID)
+            {
+                output.push_back(*object);
+                (*(*object)).queryID = queryID;
+            }
+        }
+        if(tMaxX == tMaxY)
+        {
+            int next = xInd + stepX;
+            for(auto object = grid[next][yInd].begin(); object != grid[next][yInd].end(); object++)
+            {
+                if(queryID != (*(*object)).queryID)
+                {
+                    output.push_back(*object);
+                    (*(*object)).queryID = queryID;
+                }
+            }
+        }
+        if(tMaxX < tMaxY)
+        {
+            tMaxX += tDeltaX;
+            lower.first += stepX;
+
+        }
+        else
+        {
+            tMaxY += tDeltaY;
+            lower.second += stepY;
+        }
+    } while (tMaxX <= 1 || tMaxY <= 1);
+    std::vector<polygonCollider*> lastCell = getNearby(secondPoint.x, secondPoint.y);
+    for(auto object = lastCell.begin(); object != lastCell.end(); object++)
+    {
+        if(queryID != (*(*object)).queryID)
+        {
+            output.push_back(*object);
+            (*(*object)).queryID = queryID;
+        }
+    }
+    return output;
+    
 }

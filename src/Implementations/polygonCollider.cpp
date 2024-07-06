@@ -245,7 +245,7 @@ void polygonCollider::checkCollisions()
         edge edge2 = findEdge((*test).points, (*test).numVertices, -smallestAxis);
         glm::vec2 referenceVector;
         edge reference, incident;
-        if(abs(glm::dot(glm::normalize(edge1.v2 - edge1.v1), smallestAxis)) <= glm::dot(glm::normalize(edge2.v2 - edge2.v1), smallestAxis))
+        if(std::abs(glm::dot(glm::normalize(edge1.v2 - edge1.v1), smallestAxis)) <= std::abs(glm::dot(glm::normalize(edge2.v2 - edge2.v1), smallestAxis)))
         {
             reference = edge1;
             referenceVector = glm::normalize(edge1.v2 - edge1.v1);
