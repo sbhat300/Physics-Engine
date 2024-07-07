@@ -37,6 +37,7 @@ class polygonCollider
         bool initialized;
         float furthestDistance;
         float minX, maxX, minY, maxY;
+        entity* base;
         glm::vec2 centroid;
         spatialHashGrid* grid;
         unsigned int queryID;
@@ -45,7 +46,7 @@ class polygonCollider
         std::vector<std::vector<int>> shgIndex;
 
         polygonCollider();
-        polygonCollider(spatialHashGrid* spg, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
+        polygonCollider(spatialHashGrid* spg, entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void updateCollider();
         void setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
         bool pointInPolygon(glm::vec2 point);

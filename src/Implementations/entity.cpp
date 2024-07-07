@@ -20,7 +20,7 @@ entity::entity(glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity
 }
 void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
 {
-    polygonInstance = polygon(p, s, r);
+    polygonInstance = polygon(this, p, s, r);
     polygonInstance.basePosition = &position;
     polygonInstance.baseScale = &scale;
     polygonInstance.baseRotation = &rotation;
@@ -28,7 +28,7 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
 }
 void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
 {
-    polygonColliderInstance = polygonCollider(spg, p, s, r);
+    polygonColliderInstance = polygonCollider(spg, this, p, s, r);
     polygonColliderInstance.basePosition = &position;
     polygonColliderInstance.baseScale = &scale;
     polygonColliderInstance.baseRotation = &rotation;

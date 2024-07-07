@@ -139,7 +139,7 @@ std::pair<int, int> spatialHashGrid::getCellIndex(float x, float y)
 {
     float xInd = clamp((x - start.x) / width, 0, 1);
     float yInd = clamp((y - start.y) / height, 0, 1);
-    std::pair<int, int> out(std::min(numCells.x - 1, floor(xInd * (numCells.x))), std::min(numCells.x - 1, floor(yInd * (numCells.y))));
+    std::pair<int, int> out(std::min(numCells.x - 1, floor(xInd * (numCells.x))), std::min(numCells.y - 1, floor(yInd * (numCells.y))));
     return out;
 }
 std::pair<int, int> spatialHashGrid::getCellIndexNoClamp(float x, float y)
@@ -158,29 +158,38 @@ std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
     glm::vec2 secondPoint = (*r).origin + (*r).direction * (*r).length;
     std::pair<int, int> lower = getCellIndexNoClamp((*r).origin.x, (*r).origin.y);
     std::pair<int, int> upper = getCellIndexNoClamp(secondPoint.x, secondPoint.y);
+    if(lower.first < 0 || lower.second < 0 || lower.first >= numCells.x || lower.second >= numCells.y) return output;
+    if(lower.first == upper.first && lower.second == upper.second) return getNearby((*r).origin.x, (*r).origin.y);
     int stepX, stepY;
     float xLength = (*r).direction.x * (*r).length;
     float yLength = (*r).direction.y * (*r).length;
-    if(lower.first == upper.first && lower.second == upper.second) return getNearby((*r).origin.x, (*r).origin.y);
     float tMaxX, tMaxY;
     if((*r).direction.x > 0)
     {
-        tMaxX = std::abs((start.x + (lower.first + 1) * cellWidth - (*r).origin.x) / xLength);
+        float top = start.x + (lower.first + 1) * cellWidth - (*r).origin.x;
+        if(top == 0 && xLength == 0) tMaxX = std::numeric_limits<float>::infinity();
+        else tMaxX = std::abs(top / xLength);
         stepX = 1;
     }
     else
     {
-        tMaxX = std::abs(((*r).origin.x - (start.x + lower.first * cellWidth)) / xLength);
+        float top = (*r).origin.x - (start.x + lower.first * cellWidth);
+        if(top == 0 && xLength == 0) tMaxX = std::numeric_limits<float>::infinity();
+        tMaxX = std::abs(top / xLength);
         stepX = -1;
     }
     if((*r).direction.y > 0) 
     { 
-        tMaxY = std::abs((start.y + (lower.second + 1) * cellHeight - (*r).origin.y) / yLength);
+        float top = start.y + (lower.second + 1) * cellHeight - (*r).origin.y;
+        if(top == 0 && yLength == 0) tMaxY = std::numeric_limits<float>::infinity();
+        else tMaxY = std::abs(top / yLength);
         stepY = 1;
     }
     else
     {
-        tMaxY = std::abs(((*r).origin.y - (start.y + lower.second * cellHeight)) / yLength);
+        float top = (*r).origin.y - (start.y + lower.second * cellHeight);
+        if(top == 0 && yLength == 0) tMaxY = std::numeric_limits<float>::infinity();
+        else tMaxY = std::abs(top / yLength);
         stepY = -1;
     }
     float tDeltaX = std::abs(cellWidth / xLength);
@@ -190,6 +199,7 @@ std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
     {
         int xInd = clamp(lower.first, 0, numCells.x - 1);
         int yInd = clamp(lower.second, 0, numCells.y - 1);
+        if(lower.first != xInd || lower.second != yInd) return output;
         for(auto object = grid[xInd][yInd].begin(); object != grid[xInd][yInd].end(); object++)
         {
             if(queryID != (*(*object)).queryID)
@@ -214,7 +224,6 @@ std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
         {
             tMaxX += tDeltaX;
             lower.first += stepX;
-
         }
         else
         {
@@ -238,34 +247,47 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
     glm::vec2 secondPoint = (*r).origin + (*r).direction * (*r).length;
     std::pair<int, int> lower = getCellIndexNoClamp((*r).origin.x, (*r).origin.y);
     std::pair<int, int> upper = getCellIndexNoClamp(secondPoint.x, secondPoint.y);
-    int stepX, stepY;
-    float xLength = (*r).direction.x * (*r).length;
-    float yLength = (*r).direction.y * (*r).length;
     std::pair<bool, rayData> test;
+    if(lower.first < 0 || lower.second < 0 || lower.first >= numCells.x || lower.second >= numCells.y) 
+    {
+        test.first = false;
+        return test;
+    }
     if(lower.first == upper.first && lower.second == upper.second)
     {
         test = (*r).getFirstCollision(&grid[clamp(lower.first, 0, numCells.x - 1)][clamp(lower.second, 0, numCells.y - 1)]);
         if(test.first) return test;
     }
+    int stepX, stepY;
+    float xLength = (*r).direction.x * (*r).length;
+    float yLength = (*r).direction.y * (*r).length;
     float tMaxX, tMaxY;
     if((*r).direction.x > 0)
     {
-        tMaxX = std::abs((start.x + (lower.first + 1) * cellWidth - (*r).origin.x) / xLength);
+        float top = start.x + (lower.first + 1) * cellWidth - (*r).origin.x;
+        if(top == 0 && xLength == 0) tMaxX = std::numeric_limits<float>::infinity();
+        else tMaxX = std::abs(top / xLength);
         stepX = 1;
     }
     else
     {
-        tMaxX = std::abs(((*r).origin.x - (start.x + lower.first * cellWidth)) / xLength);
+        float top = (*r).origin.x - (start.x + lower.first * cellWidth);
+        if(top == 0 && xLength == 0) tMaxX = std::numeric_limits<float>::infinity();
+        tMaxX = std::abs(top / xLength);
         stepX = -1;
     }
     if((*r).direction.y > 0) 
     { 
-        tMaxY = std::abs((start.y + (lower.second + 1) * cellHeight - (*r).origin.y) / yLength);
+        float top = start.y + (lower.second + 1) * cellHeight - (*r).origin.y;
+        if(top == 0 && yLength == 0) tMaxY = std::numeric_limits<float>::infinity();
+        else tMaxY = std::abs(top / yLength);
         stepY = 1;
     }
     else
     {
-        tMaxY = std::abs(((*r).origin.y - (start.y + lower.second * cellHeight)) / yLength);
+        float top = (*r).origin.y - (start.y + lower.second * cellHeight);
+        if(top == 0 && yLength == 0) tMaxY = std::numeric_limits<float>::infinity();
+        else tMaxY = std::abs(top / yLength);
         stepY = -1;
     }
     float tDeltaX = std::abs(cellWidth / xLength);
@@ -275,6 +297,7 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
     {
         int xInd = clamp(lower.first, 0, numCells.x - 1);
         int yInd = clamp(lower.second, 0, numCells.y - 1);
+        if(lower.first != xInd || lower.second != yInd) return test;
         test = (*r).getFirstCollision(&grid[xInd][yInd]);
         if(test.first) return test;
         if(tMaxX == tMaxY)
@@ -287,7 +310,6 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
         {
             tMaxX += tDeltaX;
             lower.first += stepX;
-
         }
         else
         {

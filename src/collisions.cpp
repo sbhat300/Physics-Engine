@@ -37,13 +37,13 @@ std::unordered_map<int, entity*> entities;
 
 entity bottomFloor(glm::vec2(20, -5), glm::vec2(10, 10), 0, &entities, &counter);
 entity rect(glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter);
-entity rect2(glm::vec2(0, -300), glm::vec2(40, 100), 0, &entities, &counter);
+entity rect2(glm::vec2(200, -300), glm::vec2(40, 100), 0, &entities, &counter);
 
 point rDebugPoint(0, 0, 6);
 
 spatialHashGrid grid(500, 500, glm::vec2(4, 4), glm::vec2(-300, -400));
 
-ray r(glm::vec2(-100, 50), glm::vec2(0.4, -0.2), 50, &grid);
+ray r(glm::vec2(-50, -300), glm::vec2(0.35, 1.4), 50, &grid);
 
 
 int main() {
@@ -146,19 +146,19 @@ int main() {
         rayShader.use();
         r.render();
         grid.drawGrid();
-        std::pair<bool, rayData> rdata2 = r.getFirstCollision();
         rect.polygonColliderInstance.renderColliderBounds();
-        if(rdata2.first)
-        {
-            rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
-            rDebugPoint.render();
-        }
-        // std::vector<rayData> rdata = r.getCollisions();
-        // for(int i = 0; i < rdata.size(); i++) 
+        // std::pair<bool, rayData> rdata2 = r.getFirstCollision();
+        // if(rdata2.first)
         // {
-        //     rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
+        //     rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
         //     rDebugPoint.render();
         // }
+        std::vector<rayData> rdata = r.getCollisions();
+        for(int i = 0; i < rdata.size(); i++) 
+        {
+            rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
+            rDebugPoint.render();
+        }
         // std::cout << &(rect.polygonColliderInstance) << " " << &(rect2.polygonColliderInstance) << " " << &(bottomFloor.polygonColliderInstance) << std::endl;
         // std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
         // for(auto i = b.begin(); i != b.end(); i++)
@@ -198,8 +198,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        r.length += 100 * deltaTime;
-        // camera.ProcessKeyboard(UP, deltaTime);
+        camera.ProcessKeyboard(UP, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         camera.ProcessKeyboard(DOWN, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -209,7 +208,9 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         rect.setRotation(rect.rotation + 50 * deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.setRotation(rect.rotation - 50 * deltaTime);   
+        rect.setRotation(rect.rotation - 50 * deltaTime); 
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        r.length += 100 * deltaTime;  
 }
 void processWireframeChange(GLFWwindow* window) 
 {

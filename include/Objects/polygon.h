@@ -1,6 +1,7 @@
 #ifndef POLYGON_H
 #define POLYGON_H
 
+class entity;
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -19,7 +20,9 @@ class polygon
         int numIndices;
         glm::vec3 color;
         float layer;
-        polygon(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
+        entity* base;
+        polygon();
+        polygon(entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void initPolygon(int vertexCount, float* p, int indexCount, int* ind);
         void initRectangle();
         void render();

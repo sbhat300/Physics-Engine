@@ -12,7 +12,7 @@
 #include "Physics/polygonCollider.h"
 
 polygonCollider::polygonCollider(){}
-polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
+polygonCollider::polygonCollider(spatialHashGrid* spg, entity* b, glm::vec2 p, glm::vec2 s, float r)
 {
     initialized = false;
     collide = false;
@@ -22,6 +22,7 @@ polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s,
     debugPoint = point(0, 0, 3);
     furthestDistance = -1;
     grid = spg;
+    base = b;
     queryID = 0;
 }
 void polygonCollider::updateCollider()

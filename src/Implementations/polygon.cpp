@@ -7,9 +7,11 @@
 #include <math.h>    
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
+#include <entity.h>
 #include "Objects/polygon.h"
 
-polygon::polygon(glm::vec2 p, glm::vec2 s, float r)
+polygon::polygon(){}
+polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r)
 {
     initialized = false;
     scaleOffset = s;
@@ -20,6 +22,7 @@ polygon::polygon(glm::vec2 p, glm::vec2 s, float r)
     polygonVAO = 0;
     polygonVBO = 0;
     prevLayer = -1;
+    base = b;
 }
 void polygon::initPolygon(int vertexCount, float* p, int indexCount, int* ind)
 {
