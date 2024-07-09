@@ -14,6 +14,7 @@
 #include <list>
 #include <map>
 #include <Physics/ray.h>
+#include <FileLoader/fileLoader.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -31,12 +32,13 @@ camera2D camera(glm::vec3(0, 0, maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 int counter = 0;
 
-std::map<int, entity*> entities;
+std::unordered_map<int, entity*> entities;
 
 entity rect(glm::vec2(0, 0), glm::vec2(1, 1), 0, &entities, &counter);
 point p(0, 0, 1);
 ray r(glm::vec2(0, 10), glm::vec2(1, 0), 5);
 
+fileLoader loader;
 int main() {
     rect.addPolygon(glm::vec2(0, 0), glm::vec2(1, 1), 0);
     rect.polygonInstance.initRectangle();
@@ -49,11 +51,19 @@ int main() {
     rect.setScale(40, 40);
 
     r.layer = 1;
+    
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    bool windows = true;
+    #ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        windows = false;
+    #endif
+    
     GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
     if (window == NULL)
     {
@@ -76,9 +86,9 @@ int main() {
 
     
 
-    Shader shader("D:/Physics-Engine/shaders/gravityVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader pointShader("D:/Physics-Engine/shaders/pointVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader rayShader("D:/Physics-Engine/shaders/rayVShader.glsl", "D:/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader shader("gravityVShader", "gravityFShader");
+    Shader pointShader("pointVShader", "gravityFShader");
+    Shader rayShader("rayVShader", "gravityFShader");
     configureShader(shader);
     configureShader(pointShader);
     configureShader(rayShader);

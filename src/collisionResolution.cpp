@@ -8,8 +8,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include <camera/camera2D.h>
 #include <Physics/rectangleRigidbody.h>
-#include <Physics/rectangleCollider.h>
-#include <Objects/rectangle.h>
+#include <Physics/polygonCollider.h>
+#include <Objects/polygon.h>
 #include <list>
 #include <iterator>
 #include <map>

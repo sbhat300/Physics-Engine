@@ -82,11 +82,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    #ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    #endif
-
     GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
     if (window == NULL)
     {
@@ -107,9 +102,9 @@ int main() {
     glEnable(GL_PROGRAM_POINT_SIZE);  
     glEnable(GL_DEPTH_TEST);  
 
-    Shader shader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader pointShader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/pointVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
-    Shader rayShader("/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/rayVShader.glsl", "/Users/shreyas/Documents/GitHub/Physics-Engine/shaders/gravityFShader.glsl");
+    Shader shader("gravityVShader", "gravityFShader");
+    Shader pointShader("pointVShader", "gravityFShader");
+    Shader rayShader("rayVShader", "gravityFShader");
 
 
     configureShader(shader);
@@ -145,14 +140,15 @@ int main() {
         rect2.polygonColliderInstance.updateCollider();
         rayShader.use();
         r.render();
-        grid.drawGrid();
-        rect.polygonColliderInstance.renderColliderBounds();
+        // grid.drawGrid();
+        // rect.polygonColliderInstance.renderColliderBounds();
         // std::pair<bool, rayData> rdata2 = r.getFirstCollision();
         // if(rdata2.first)
         // {
         //     rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
         //     rDebugPoint.render();
         // }
+        pointShader.use();
         std::vector<rayData> rdata = r.getCollisions();
         for(int i = 0; i < rdata.size(); i++) 
         {

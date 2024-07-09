@@ -4,15 +4,15 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-  
+#include <FileLoader/fileLoader.h>
 
 class Shader
 {
 public:
     unsigned int ID;
-  
-    Shader(const char* vertexPath, const char* fragmentPath);
-    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath);
+    fileLoader loader;
+    Shader(const char* vertexName, const char* fragmentName);
+    Shader(const char* vertexName, const char* geometryName, const char* fragmentName);
     void use();
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;

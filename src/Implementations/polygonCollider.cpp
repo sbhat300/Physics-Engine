@@ -19,7 +19,7 @@ polygonCollider::polygonCollider(spatialHashGrid* spg, entity* b, glm::vec2 p, g
     positionOffset = p;
     scaleOffset = s;
     rotationOffset = r;
-    debugPoint = point(0, 0, 3);
+    debugPoint = point(0, 0, 6);
     furthestDistance = -1;
     grid = spg;
     base = b;
@@ -403,9 +403,9 @@ void polygonCollider::setRotationOffset(float r)
 void polygonCollider::renderColliderBounds()
 {
     debugPoint.setColor(glm::vec3(0.0f, 1.0f, 1.0f));
+    glUseProgram(debugShaderProgram);
     for(int i = 0; i < numVertices; i++)
     {
-        glUseProgram(debugShaderProgram);
         debugPoint.setPosition(points[i].x, points[i].y);
         debugPoint.setLayer(2);
         debugPoint.size = 6;
