@@ -44,6 +44,7 @@ class polygonCollider
         std::pair<int, int> minIndices;
         std::pair<int, int> maxIndices;
         std::vector<std::vector<int>> shgIndex;
+        bool shouldRenderBounds;
 
         polygonCollider();
         polygonCollider(spatialHashGrid* spg, entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);

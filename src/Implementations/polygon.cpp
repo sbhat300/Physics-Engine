@@ -84,6 +84,10 @@ void polygon::setPositionOffset(float x, float y)
 {
     positionOffset = glm::vec3(x, y, 0);
 }
+void polygon::setScaleOffset(float x, float y)
+{
+    scaleOffset = glm::vec2(x, y);
+}
 void polygon::setColor(glm::vec3 col)
 {
     color = col;

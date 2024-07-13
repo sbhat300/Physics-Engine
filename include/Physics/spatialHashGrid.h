@@ -30,7 +30,7 @@ class spatialHashGrid
         float clamp(float n, float lower, float upper);
         std::pair<int, int> getCellIndex(float x, float y);
         std::pair<int, int> getCellIndexNoClamp(float x, float y);
-
+        int testPoint(float x, float y);
 
     private:
         unsigned int gridVAO, gridVBO;

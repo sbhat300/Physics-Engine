@@ -6,17 +6,30 @@
 #include <glm/gtx/string_cast.hpp>
 #include <unordered_map>
 #include <Physics/spatialHashGrid.h>
+#include <limits>
 #include "entity.h"
+#include <string>
+#include <FileLoader/objDataLoader.h>
 
-entity::entity(glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity*>* e, int* counter)
+entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity*>* e, int* counter, std::fstream* dat)
 {
+    data = dat;
+    label = l;
     id = *counter;
     position = p;
+    startingPosition = p;
     scale = s;
+    startingScale = s;
     rotation = r;
+    startingRotation = r;
     entities = e;
     (*e)[id] = this;
     *counter += 1;
+    
+    DataLoader::data << id << " p" << position.x << "," << position.y <<
+                                " s" << scale.x << "," << scale.y  <<
+                                " r" << rotation << std::endl;
+    guiSave = false;
 }
 void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
 {

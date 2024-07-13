@@ -321,3 +321,11 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
     test = (*r).getFirstCollision(&lastCell);
     return test;
 }
+int spatialHashGrid::testPoint(float x, float y)
+{
+    std::vector<polygonCollider*> possible = getNearby(x, y);    
+    for(auto i = possible.begin(); i != possible.end(); i++)
+        if((*(*i)).pointInPolygon(glm::vec2(x, y))) 
+            return (*(*i)).id;
+    return -1;
+}

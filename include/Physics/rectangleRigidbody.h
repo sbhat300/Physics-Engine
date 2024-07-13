@@ -1,12 +1,10 @@
 #ifndef RECTANGLERIGIDBODY_H
 #define RECTANGLERIGIDBODY_H
-#include <Objects/rectangle.h>
-#include <Physics/rectangleCollider.h>
 #include <iostream>
 #include <map>
 #include <functional>
 
-class rectangleRigidbody : public rectangleCollider
+class rectangleRigidbody
 {
     public:
         glm::vec3 force, velocity, impulse, acceleration;

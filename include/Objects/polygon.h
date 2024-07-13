@@ -30,6 +30,7 @@ class polygon
         void setColor(glm::vec3 col);
         void setLayer(int l);
         void setRotationOffset(float degrees);
+        void setScaleOffset(float x, float y);
     private:
         unsigned int polygonVAO, polygonVBO;
         int prevLayer;

@@ -11,7 +11,6 @@
 Shader::Shader(const char* vertexName, const char* fragmentName)
 {
     bool windows = true;
-    std::cout << loader.rootPath << std::endl;
     #ifdef __APPLE__
         windows = false;
     #endif

@@ -24,10 +24,12 @@ polygonCollider::polygonCollider(spatialHashGrid* spg, entity* b, glm::vec2 p, g
     grid = spg;
     base = b;
     queryID = 0;
+    shouldRenderBounds = false;
 }
 void polygonCollider::updateCollider()
 {
     if(collide) checkCollisions();
+    if(shouldRenderBounds) renderColliderBounds();
 }
 void polygonCollider::setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb)
 {
