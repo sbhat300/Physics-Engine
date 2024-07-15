@@ -26,14 +26,14 @@ entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_
     (*e)[id] = this;
     *counter += 1;
     
-    DataLoader::data << id << " p" << position.x << "," << position.y <<
-                                " s" << scale.x << "," << scale.y  <<
-                                " r" << rotation << std::endl;
+    // DataLoader::data << id << " p" << position.x << "," << position.y <<
+    //                             " s" << scale.x << "," << scale.y  <<
+    //                             " r" << rotation << std::endl;
     guiSave = false;
 }
-void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
+void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int layer)
 {
-    polygonInstance = polygon(this, p, s, r);
+    polygonInstance = polygon(this, p, s, r, col, layer);
     polygonInstance.basePosition = &position;
     polygonInstance.baseScale = &scale;
     polygonInstance.baseRotation = &rotation;
@@ -41,7 +41,7 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r)
 }
 void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
 {
-    polygonColliderInstance = polygonCollider(spg, this, p, s, r);
+    polygonColliderInstance = polygonCollider(spg, p, s, r, this);
     polygonColliderInstance.basePosition = &position;
     polygonColliderInstance.baseScale = &scale;
     polygonColliderInstance.baseRotation = &rotation;

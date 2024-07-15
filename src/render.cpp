@@ -34,7 +34,7 @@ int counter = 0;
 
 std::unordered_map<int, entity*> entities;
 
-entity rect(glm::vec2(0, 0), glm::vec2(1, 1), 0, &entities, &counter);
+entity rect("sdsds", glm::vec2(0, 0), glm::vec2(1, 1), 0, &entities, &counter);
 point p(0, 0, 1);
 ray r(glm::vec2(0, 10), glm::vec2(1, 0), 5);
 

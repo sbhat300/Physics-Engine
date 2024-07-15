@@ -8,8 +8,8 @@ class entity;
 class polygon
 {
     public:
-        glm::vec2 scaleOffset, positionOffset;
-        float rotationOffset;
+        glm::vec2 scaleOffset, startScaleOffset, positionOffset, startPositionOffset;
+        float rotationOffset, startRotationOffset;
         glm::vec2* basePosition;
         glm::vec2* baseScale;
         float* baseRotation;
@@ -18,11 +18,11 @@ class polygon
         std::vector<int> indices;
         int numVertices;
         int numIndices;
-        glm::vec3 color;
-        float layer;
+        glm::vec3 color, startColor;
+        int layer, startLayer;
         entity* base;
         polygon();
-        polygon(entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
+        polygon(entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, glm::vec3 col = glm::vec3(1, 1, 1), int l = 1);
         void initPolygon(int vertexCount, float* p, int indexCount, int* ind);
         void initRectangle();
         void render();

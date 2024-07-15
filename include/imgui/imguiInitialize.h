@@ -5,6 +5,7 @@
 #include "imgui_impl_opengl3.h"
 #include <entity.h>
 #include <unordered_map>
+#include <string>
 
 namespace gui
 {
@@ -19,6 +20,7 @@ namespace gui
     void entityOptions();
     void polygonOptions();
     void polygonColliderOptions();
+    std::string getEntityData(int i, bool saved);
     void postLoop();
     void terminate();
 };

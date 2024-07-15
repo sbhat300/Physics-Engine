@@ -12,13 +12,16 @@
 #include "Physics/polygonCollider.h"
 
 polygonCollider::polygonCollider(){}
-polygonCollider::polygonCollider(spatialHashGrid* spg, entity* b, glm::vec2 p, glm::vec2 s, float r)
+polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r, entity* b)
 {
     initialized = false;
     collide = false;
     positionOffset = p;
     scaleOffset = s;
     rotationOffset = r;
+    startPositionOffset= p;
+    startScaleOffset = s;
+    startRotationOffset = r;
     debugPoint = point(0, 0, 6);
     furthestDistance = -1;
     grid = spg;

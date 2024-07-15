@@ -1,7 +1,7 @@
 #include "imgui/imguiInitialize.h"
 #include <GLFW/glfw3.h>
 #include <FileLoader/objDataLoader.h>
-#include <string>
+#include <algorithm>
 
 /*
 TO COMPLETELY REMOVE FROM BUILD:
@@ -49,10 +49,7 @@ void gui::terminate()
     {
         for(auto i = 0; i <= maxEntityCount; i++)
         {
-            output += std::to_string((*(*entityList)[i]).id) + 
-                        " p" + std::to_string((*(*entityList)[i]).position.x) + "," + std::to_string((*(*entityList)[i]).position.y) +
-                        " s" + std::to_string((*(*entityList)[i]).scale.x) + "," + std::to_string((*(*entityList)[i]).scale.y) +
-                        " r" + std::to_string((*(*entityList)[i]).rotation) + "\n";
+            output += getEntityData(i, true);
         }
         DataLoader::setFile(output);
     }
@@ -60,17 +57,7 @@ void gui::terminate()
     {
         for(auto i = 0; i <= maxEntityCount; i++)
         {
-            output += std::to_string((*(*entityList)[i]).id);
-            if((*(*entityList)[i]).guiSave)
-                output += " p" + std::to_string((*(*entityList)[i]).position.x) + "," + std::to_string((*(*entityList)[i]).position.y) +
-                        " s" + std::to_string((*(*entityList)[i]).scale.x) + "," + std::to_string((*(*entityList)[i]).scale.y) +
-                        " r" + std::to_string((*(*entityList)[i]).rotation);
-
-            else
-                output += " p" + std::to_string((*(*entityList)[i]).startingPosition.x) + "," + std::to_string((*(*entityList)[i]).startingPosition.y) +
-                        " s" + std::to_string((*(*entityList)[i]).startingScale.x) + "," + std::to_string((*(*entityList)[i]).startingScale.y) +
-                        " r" + std::to_string((*(*entityList)[i]).startingRotation);
-            output += "\n";
+            output += getEntityData(i, (*(*entityList)[i]).guiSave);
         }
         DataLoader::setFile(output);
     }
@@ -90,7 +77,7 @@ void gui::entityOptions()
             nums[0] = (*(*entityList)[currentID]).scale.x;
             nums[1] = (*(*entityList)[currentID]).scale.y;
             if(ImGui::DragFloat2("Scale", nums, 1))
-                (*(*entityList)[currentID]).setScale(nums[0], nums[1]);
+                (*(*entityList)[currentID]).setScale(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
             nums[0] = (*(*entityList)[currentID]).rotation;
             if(ImGui::DragFloat("Rotation", &nums[0], 1))
                 (*(*entityList)[currentID]).setRotation(nums[0]);
@@ -109,7 +96,7 @@ void gui::polygonOptions()
         nums[0] = (*(*entityList)[currentID]).polygonInstance.scaleOffset.x;
         nums[1] = (*(*entityList)[currentID]).polygonInstance.scaleOffset.y;
         if(ImGui::DragFloat2("Scale offset", nums, 0.25f))
-            (*(*entityList)[currentID]).polygonInstance.setScaleOffset(nums[0], nums[1]);
+            (*(*entityList)[currentID]).polygonInstance.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
         nums[0] = (*(*entityList)[currentID]).polygonInstance.rotationOffset;
         if(ImGui::DragFloat("Rotation offset", &nums[0], 1))
             (*(*entityList)[currentID]).polygonInstance.setRotationOffset(nums[0]);
@@ -147,7 +134,7 @@ void gui::polygonColliderOptions()
         nums[0] = (*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.x;
         nums[1] = (*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.y;
         if(ImGui::DragFloat2("Scale offset", nums, 0.25f))
-            (*(*entityList)[currentID]).polygonColliderInstance.setScaleOffset(nums[0], nums[1]);
+            (*(*entityList)[currentID]).polygonColliderInstance.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
         nums[0] = (*(*entityList)[currentID]).polygonColliderInstance.rotationOffset;
         if(ImGui::DragFloat("Rotation offset", &nums[0], 1))
             (*(*entityList)[currentID]).polygonColliderInstance.setRotationOffset(nums[0]);
@@ -165,4 +152,47 @@ void gui::polygonColliderOptions()
         ImGui::Checkbox("Render bounds", &(*(*entityList)[currentID]).polygonColliderInstance.shouldRenderBounds);
         ImGui::TreePop();
     }
+}
+std::string gui::getEntityData(int i, bool saved)
+{
+    std::string output;
+    output += std::to_string((*(*entityList)[i]).id);
+    if(saved)
+        output += " p" + std::to_string((*(*entityList)[i]).position.x) + "," + std::to_string((*(*entityList)[i]).position.y) +
+                " s" + std::to_string((*(*entityList)[i]).scale.x) + "," + std::to_string((*(*entityList)[i]).scale.y) +
+                " r" + std::to_string((*(*entityList)[i]).rotation);
+
+    else
+        output += " p" + std::to_string((*(*entityList)[i]).startingPosition.x) + "," + std::to_string((*(*entityList)[i]).startingPosition.y) +
+                " s" + std::to_string((*(*entityList)[i]).startingScale.x) + "," + std::to_string((*(*entityList)[i]).startingScale.y) +
+                " r" + std::to_string((*(*entityList)[i]).startingRotation);
+    if(!(*(*entityList)[i]).contain[0]) 
+        output += " x x x x x";
+    else
+        if(saved)
+            output += " po" + std::to_string((*(*entityList)[i]).polygonInstance.positionOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonInstance.positionOffset.y) +
+                    " so" + std::to_string((*(*entityList)[i]).polygonInstance.scaleOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonInstance.scaleOffset.y) + 
+                    " ro" + std::to_string((*(*entityList)[i]).polygonInstance.rotationOffset) + 
+                    " col" + std::to_string((*(*entityList)[i]).polygonInstance.color.x) + "," + std::to_string((*(*entityList)[i]).polygonInstance.color.y) + "," + std::to_string((*(*entityList)[i]).polygonInstance.color.z) +
+                    " l" + std::to_string((*(*entityList)[i]).polygonInstance.layer);
+        else
+            output += " po" + std::to_string((*(*entityList)[i]).polygonInstance.startPositionOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonInstance.startPositionOffset.y) +
+                    " so" + std::to_string((*(*entityList)[i]).polygonInstance.startScaleOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonInstance.startScaleOffset.y) + 
+                    " ro" + std::to_string((*(*entityList)[i]).polygonInstance.startRotationOffset) + 
+                    " col" + std::to_string((*(*entityList)[i]).polygonInstance.startColor.x) + "," + std::to_string((*(*entityList)[i]).polygonInstance.startColor.y) + "," + std::to_string((*(*entityList)[i]).polygonInstance.startColor.z) +
+                    " l" + std::to_string((*(*entityList)[i]).polygonInstance.startLayer);
+    if(!(*(*entityList)[i]).contain[1])
+        output += " x x x";
+    else
+        if(saved)
+            output += " pco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.positionOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.positionOffset.y) + 
+                    " sco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.scaleOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.scaleOffset.y) + 
+                    " rco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.rotationOffset);
+        else
+            output += " pco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.startPositionOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.startPositionOffset.y) + 
+                " sco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.startScaleOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.startScaleOffset.y) + 
+                " rco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.startRotationOffset);
+
+    output += "\n";
+    return output;
 }

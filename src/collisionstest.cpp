@@ -44,9 +44,9 @@ const char* DataLoader::name = "collisionsObjectData.txt";
 std::unordered_map<int, entity*> entities;
 
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(20, -5), glm::vec2(10, 10), 0, &entities, &counter, &DataLoader::data);
-entity rect("player", glm::vec2(-200, -300), glm::vec2(40, 40), 0, &entities, &counter, &DataLoader::data);
-entity rect2("big rect", glm::vec2(200, -300), glm::vec2(40, 100), 0, &entities, &counter, &DataLoader::data);
+entity bottomFloor("small rect", glm::vec2(20.000000, -5.000000), glm::vec2(10.000000, 10.000000), 0.000000, &entities, &counter, &DataLoader::data);
+entity rect("player", glm::vec2(-200.000000, -300.000000), glm::vec2(40.000000, 40.000000), 0.000000, &entities, &counter, &DataLoader::data);
+entity rect2("big rect", glm::vec2(200.000000, -300.000000), glm::vec2(40.000000, 100.000000), 0.000000, &entities, &counter, &DataLoader::data);
 /*-----END-----*/
 
 point rDebugPoint(0, 0, 6);
@@ -65,26 +65,28 @@ int gui::maxEntityCount = counter - 1;
 glm::vec2 mousePos;
 
 int main() {
-    rect.addPolygon();
+    /*-----POLYGON INITIALIZATION-----*/
+	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
+	rect.addPolygon(glm::vec2(40.000000, 40.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
+	rect2.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.200000, 0.400000, 0.300000), 1);
+    /*-----END-----*/
+    
     rect.polygonInstance.initRectangle();
-    rect.polygonInstance.setColor(glm::vec3(0.5f, 0.5f, 0.7f));
-    rect.polygonInstance.setLayer(1);
-    bottomFloor.addPolygon();
     bottomFloor.polygonInstance.initRectangle();
-    bottomFloor.polygonInstance.setColor(glm::vec3(0.8f, 0.4f, 0.6f));
-    rect2.addPolygon();
     rect2.polygonInstance.initRectangle();
-    rect2.polygonInstance.setColor(glm::vec3(0.2f, 0.4f, 0.3f));
+    
+    /*-----COLLIDER INITIALIZATION-----*/
+	bottomFloor.addPolygonCollider(&grid, glm::vec2(12, 52), glm::vec2(12, 93), 91);
+	rect.addPolygonCollider(&grid, glm::vec2(23, 99), glm::vec2(93, 11), 64);
+	rect2.addPolygonCollider(&grid, glm::vec2(54, 19), glm::vec2(67, 28), 99);
+    /*-----END-----*/
 
-    rect.addPolygonCollider(&grid);
-    rect.polygonColliderInstance.initRectangle();
-    bottomFloor.addPolygonCollider(&grid);
-    bottomFloor.polygonColliderInstance.initRectangle();
-    rect2.addPolygonCollider(&grid);
     rect2.polygonColliderInstance.initRectangle();
+    rect.polygonColliderInstance.initRectangle();
+    bottomFloor.polygonColliderInstance.initRectangle();
 
-    rect.polygonColliderInstance.setPositionOffset(40, 40);
-    rect.polygonInstance.setPositionOffset(40, 40);
+    // rect.polygonColliderInstance.setPositionOffset(40, 40);
+    // rect.polygonInstance.setPositionOffset(40, 40);
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;
 
@@ -100,6 +102,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    #ifdef __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    #endif
     GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
     if (window == NULL)
     {
@@ -113,7 +118,9 @@ int main() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-    glViewport(0, 0, windowWidth, windowHeight);
+    int initWidth, initHeight;
+    glfwGetFramebufferSize(window, &initWidth, &initHeight);
+    glViewport(0, 0, initWidth, initHeight);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -121,7 +128,6 @@ int main() {
     glEnable(GL_PROGRAM_POINT_SIZE);  
     glEnable(GL_DEPTH_TEST);  
 
-        // Setup Dear ImGui context
     gui::init(window);
 
     Shader shader("gravityVShader", "gravityFShader");

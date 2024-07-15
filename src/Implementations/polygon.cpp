@@ -11,14 +11,19 @@
 #include "Objects/polygon.h"
 
 polygon::polygon(){}
-polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r)
+polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int l)
 {
     initialized = false;
     scaleOffset = s;
     rotationOffset = r;
     positionOffset = p;
-    color = glm::vec3(1,1,1);
-    layer = 1;
+    startPositionOffset = p;
+    startRotationOffset = r;
+    startScaleOffset = s;
+    startColor = col;
+    startLayer = l;
+    color = col;
+    layer = l;
     polygonVAO = 0;
     polygonVBO = 0;
     prevLayer = -1;
