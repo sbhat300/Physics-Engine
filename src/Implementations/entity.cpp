@@ -11,7 +11,7 @@
 #include <string>
 #include <FileLoader/objDataLoader.h>
 
-entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity*>* e, int* counter, std::fstream* dat)
+entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity*>* e, int* counter, std::fstream* dat, sharedData* sh)
 {
     data = dat;
     label = l;
@@ -25,6 +25,7 @@ entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_
     entities = e;
     (*e)[id] = this;
     *counter += 1;
+    shared = sh;
     
     // DataLoader::data << id << " p" << position.x << "," << position.y <<
     //                             " s" << scale.x << "," << scale.y  <<
@@ -37,6 +38,7 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int la
     polygonInstance.basePosition = &position;
     polygonInstance.baseScale = &scale;
     polygonInstance.baseRotation = &rotation;
+    polygonInstance.shared = shared;
     contain[0] = true;
 }
 void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)

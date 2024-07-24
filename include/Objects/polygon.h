@@ -4,6 +4,7 @@
 class entity;
 #include <glm/glm.hpp>
 #include <vector>
+#include <sharedData.h>
 
 class polygon
 {
@@ -20,6 +21,7 @@ class polygon
         int numIndices;
         glm::vec3 color, startColor;
         int layer, startLayer;
+        sharedData* shared;
         entity* base;
         polygon();
         polygon(entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, glm::vec3 col = glm::vec3(1, 1, 1), int l = 1);
@@ -33,7 +35,6 @@ class polygon
         void setScaleOffset(float x, float y);
     private:
         unsigned int polygonVAO, polygonVBO;
-        int prevLayer;
         void renderPolygon();
         void initVAO();
         void bufferNewData();

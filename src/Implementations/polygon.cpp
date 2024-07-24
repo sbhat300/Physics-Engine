@@ -26,59 +26,24 @@ polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, in
     layer = l;
     polygonVAO = 0;
     polygonVBO = 0;
-    prevLayer = -1;
     base = b;
 }
 void polygon::initPolygon(int vertexCount, float* p, int indexCount, int* ind)
 {
     numVertices = vertexCount;
-    vertices.reserve(vertexCount * 3);
+    vertices.reserve(vertexCount * 2);
     indices.reserve(indexCount);
-    int extraOffset = 0;
-    for(int i = 0; i < vertexCount * 2; i += 2)
-    {
-        vertices[i + extraOffset] = *(p + i);
-        vertices[i + 1 + extraOffset] = *(p + i + 1);
-        vertices[i + 2 + extraOffset] = 1;
-        extraOffset++;
-    }
-    for(int i = 0; i < indexCount; i++)
-    {
-        indices[i] = *(ind + i);
-    }
+    memcpy(&vertices[0], p, vertexCount * 2 * sizeof(float));
+    memcpy(&indices[0], ind, indexCount * sizeof(float));
     numIndices = indexCount;
     normalizePoints();
     initialized = true;
 }
 void polygon::initRectangle()
 {
-    float p[] = {
-        1 / 2.0f,  1 / 2.0f,  // top right
-        -1 / 2.0f,  1 / 2.0f,   // top left
-        -1 / 2.0f, -1 / 2.0f,  // bottom left 
-        1 / 2.0f, -1 / 2.0f  // bottom right
-    };
-    int ind[] = { 
-        0, 1, 3,  
-        1, 2, 3    
-    };  
-    vertices.reserve(12);
-    indices.reserve(6);
-    numVertices = 4;
+    polygonVAO = (*shared).rectVAO;
     numIndices = 6;
-    int extraOffset = 0;
-    for(int i = 0; i < numVertices * 2; i += 2)
-    {
-        vertices[i + extraOffset] = *(p + i);
-        vertices[i + 1 + extraOffset] = *(p + i + 1);
-        vertices[i + 2 + extraOffset] = 1;
-        extraOffset++;
-    }
-    for(int i = 0; i < numIndices; i++)
-    {
-        indices[i] = *(ind + i);
-    }
-    normalizePoints();
+    numVertices = 4;
     initialized = true;
 }
 void polygon::render()
@@ -101,10 +66,6 @@ void polygon::setLayer(int l)
 {
     layer = l;
     if(layer < 0) layer = 0;
-    for(int i = 0; i < numVertices; i++)
-    {
-        vertices[2 + 3 * i] = layer;
-    }
 }
 void polygon::setRotationOffset(float degrees)
 {
@@ -117,11 +78,6 @@ void polygon::renderPolygon()
     if(polygonVAO == 0)
     {
         initVAO();
-    }
-    if(prevLayer != layer)
-    {
-        prevLayer = layer;
-        bufferNewData();
     }
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(*basePosition, layer));
@@ -143,12 +99,12 @@ void polygon::initVAO()
     glGenBuffers(1, &polygonVBO);
     glBindVertexArray(polygonVAO);
     glBindBuffer(GL_ARRAY_BUFFER, polygonVBO);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * 2 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
     unsigned int EBO;
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(int), &indices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);  
     glBindVertexArray(0); 
 }
@@ -162,24 +118,24 @@ void polygon::bufferNewData()
 void polygon::normalizePoints()
 {
     glm::vec2 centroid(0, 0);
-    for(int i = 0; i < numVertices * 3; i += 3)
+    for(int i = 0; i < numVertices * 2; i += 2)
     {
         centroid.x += vertices[i];
         centroid.y += vertices[i + 1];
     }
     centroid.x /= numVertices;
     centroid.y /= numVertices;
-    for(int i = 0; i < numVertices * 3; i += 3)
+    for(int i = 0; i < numVertices * 2; i += 2)
     {
         vertices[i] -= centroid.x;
         vertices[i + 1] -= centroid.y;
     }
     float area = 0;
-    for(int i = 0; i < numVertices * 3; i += 3)
+    for(int i = 0; i < numVertices * 2; i += 2)
     {
-        int nextX = i + 3;
-        int nextY = i + 4;
-        if(i + 3 >= numVertices * 3)
+        int nextX = i + 2;
+        int nextY = i + 3;
+        if(nextX >= numVertices * 2)
         { 
             nextX = 0;
             nextY = 1;
@@ -188,7 +144,7 @@ void polygon::normalizePoints()
     }
     area /= 2;
     float scale = 1 / std::sqrt(area);
-    for(int i = 0; i < numVertices * 3; i += 3)
+    for(int i = 0; i < numVertices * 2; i += 2)
     {
         vertices[i] *= scale;;
         vertices[i + 1] *= scale;

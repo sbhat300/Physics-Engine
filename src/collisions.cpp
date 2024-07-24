@@ -20,6 +20,7 @@
 #include <fstream>
 #include <string>
 #include <FileLoader/objDataLoader.h>
+#include <sharedData.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -43,10 +44,12 @@ const char* DataLoader::name = "collisionsObjectData.txt";
 
 std::unordered_map<int, entity*> entities;
 
+sharedData shared;
+
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(20.000000, -5.000000), glm::vec2(10.000000, 10.000000), 0.000000, &entities, &counter, &DataLoader::data);
-entity rect("player", glm::vec2(-200.000000, -300.000000), glm::vec2(40.000000, 40.000000), 0.000000, &entities, &counter, &DataLoader::data);
-entity rect2("big rect", glm::vec2(200.000000, -300.000000), glm::vec2(40.000000, 100.000000), 0.000000, &entities, &counter, &DataLoader::data);
+entity bottomFloor("small rect", glm::vec2(20.000000, -5.000000), glm::vec2(10.000000, 10.000000), 0.000000, &entities, &counter, &DataLoader::data, &shared);
+entity rect("player", glm::vec2(-200.000000, -300.000000), glm::vec2(40.000000, 40.000000), 0.000000, &entities, &counter, &DataLoader::data, &shared);
+entity rect2("big rect", glm::vec2(200.000000, -300.000000), glm::vec2(40.000000, 100.000000), 0.000000, &entities, &counter, &DataLoader::data, &shared);
 /*-----END-----*/
 
 point rDebugPoint(0, 0, 6);
@@ -64,39 +67,7 @@ int gui::maxEntityCount = counter - 1;
 
 glm::vec2 mousePos;
 
-int main() {
-    /*-----POLYGON INITIALIZATION-----*/
-    bottomFloor.addPolygon(glm::vec2(0, 0), glm::vec2(1, 1), 0, glm::vec3(0.8f, 0.4f, 0.6f), 1);
-    rect.addPolygon(glm::vec2(40, 40), glm::vec2(1, 1), 0, glm::vec3(0.5f, 0.5f, 0.7f), 1);
-    rect2.addPolygon(glm::vec2(0, 0), glm::vec2(1, 1), 0, glm::vec3(0.2f, 0.4f, 0.3f), 1);
-    /*-----END-----*/
-    
-    rect.polygonInstance.initRectangle();
-    bottomFloor.polygonInstance.initRectangle();
-    rect2.polygonInstance.initRectangle();
-    
-    /*-----COLLIDER INITIALIZATION-----*/
-    rect.addPolygonCollider(&grid, glm::vec2(40, 40), glm::vec2(1, 1), 0);
-    bottomFloor.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1, 1), 0);
-    rect2.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1, 1), 0);
-    /*-----END-----*/
-
-    rect2.polygonColliderInstance.initRectangle();
-    rect.polygonColliderInstance.initRectangle();
-    bottomFloor.polygonColliderInstance.initRectangle();
-
-    // rect.polygonColliderInstance.setPositionOffset(40, 40);
-    // rect.polygonInstance.setPositionOffset(40, 40);
-    rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
-    bottomFloor.polygonColliderInstance.collide = false;
-
-    r.layer = 1;
-
-    rDebugPoint.setColor(glm::vec3(1, 1, 1));
-    rDebugPoint.setLayer(2);
-
-    grid.setColor(glm::vec3(1, 0.5f, 1));
-    grid.setLayer(0);
+int main() { 
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -127,6 +98,37 @@ int main() {
 
     glEnable(GL_PROGRAM_POINT_SIZE);  
     glEnable(GL_DEPTH_TEST);  
+    shared.initVAOs();
+
+    /*-----POLYGON INITIALIZATION-----*/
+    bottomFloor.addPolygon(glm::vec2(0, 0), glm::vec2(1, 1), 0, glm::vec3(0.8f, 0.4f, 0.6f), 1);
+    rect.addPolygon(glm::vec2(40, 40), glm::vec2(1, 1), 0, glm::vec3(0.5f, 0.5f, 0.7f), 1);
+    rect2.addPolygon(glm::vec2(0, 0), glm::vec2(1, 1), 0, glm::vec3(0.2f, 0.4f, 0.3f), 1);
+    /*-----END-----*/
+    
+    /*-----COLLIDER INITIALIZATION-----*/
+    rect.addPolygonCollider(&grid, glm::vec2(40, 40), glm::vec2(1, 1), 0);
+    bottomFloor.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1, 1), 0);
+    rect2.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1, 1), 0);
+    /*-----END-----*/
+
+    r.layer = 1;
+
+    rDebugPoint.setColor(glm::vec3(1, 1, 1));
+    rDebugPoint.setLayer(2);
+
+    grid.setColor(glm::vec3(1, 0.5f, 1));
+    grid.setLayer(0);
+
+    rect.polygonInstance.initRectangle();;
+    bottomFloor.polygonInstance.initRectangle();
+    rect2.polygonInstance.initRectangle();
+
+    rect2.polygonColliderInstance.initRectangle();
+    rect.polygonColliderInstance.initRectangle();
+    bottomFloor.polygonColliderInstance.initRectangle();
+    rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
+    bottomFloor.polygonColliderInstance.collide = false;
 
     gui::init(window);
 
@@ -138,6 +140,7 @@ int main() {
     configureShader(shader);
     configureShader(pointShader);
     configureShader(rayShader);
+
     rect.polygonColliderInstance.debugShaderProgram = pointShader.ID;
     rect2.polygonColliderInstance.debugShaderProgram = pointShader.ID;
     bottomFloor.polygonColliderInstance.debugShaderProgram = pointShader.ID;
