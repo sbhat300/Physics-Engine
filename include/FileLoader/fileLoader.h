@@ -1,14 +1,12 @@
 #ifndef FILELOADER_H
 #define FILELOADER_H
-#include <filesystem>
 #include <string>
+#include "config.h"
 
-class fileLoader
+namespace fileLoader
 {
-    public:
-        std::string rootPath;
-        fileLoader();
-        std::string loadShader(const char* name, bool windows);
-    private:
+    extern std::string rootPath;
+    std::string loadShader(const char* name, bool windows);
+    std::string loadData(bool windows);
 };
 #endif

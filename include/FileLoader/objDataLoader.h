@@ -7,11 +7,10 @@ class entity;
 
 namespace DataLoader
 {
-    extern std::fstream data;
     extern int previousDataPos;
     extern const char* name;
-    void reset();
-    void jumpToLine(int line);
-    void setFile(std::string inp);
+    // void reset();
+    // void jumpToLine(int line);
+    void setFileData(std::string inp);
 };
 #endif

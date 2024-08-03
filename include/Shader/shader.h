@@ -4,13 +4,11 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <FileLoader/fileLoader.h>
 
 class Shader
 {
 public:
     unsigned int ID;
-    fileLoader loader;
     Shader(const char* vertexName, const char* fragmentName);
     Shader(const char* vertexName, const char* geometryName, const char* fragmentName);
     void use();

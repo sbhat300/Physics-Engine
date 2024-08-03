@@ -51,8 +51,8 @@ class polygonCollider
         void updateCollider();
         void setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
         bool pointInPolygon(glm::vec2 point);
-        void initPolygon(int vertexCount, float* p);
-        void initRectangle();
+        void initPolygon(int vertexCount, float* p, bool normalize = true);
+        void initRectangle(bool normalize = true);
         void calcPoints();
         void updatePoints();
         void updatePointsNoRemove();

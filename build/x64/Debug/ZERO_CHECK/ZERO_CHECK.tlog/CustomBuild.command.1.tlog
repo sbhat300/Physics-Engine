@@ -1,0 +1,10 @@
+^D:\PHYSICSENGINE\BUILD\CMAKEFILES\3949D061180CCF278F00B61A9043CEA0\GENERATE.STAMP.RULE
+setlocal
+D:\CMake\bin\cmake.exe -SD:/PhysicsEngine -BD:/PhysicsEngine/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/PhysicsEngine/build/Collisions.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -16,10 +16,11 @@
 #include <math.h>
 #include <Physics/rayData.h>
 #include <Physics/spatialHashGrid.h>
-#include <imgui/imguiInitialize.h>
+#include <ImguiImplementation/imguiInitialize.h>
 #include <fstream>
 #include <string>
 #include <FileLoader/objDataLoader.h>
+#include <FileLoader/fileLoader.h>
 #include <sharedData.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -38,18 +39,17 @@ camera2D camera(glm::vec3(0, 0, maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 int counter = 0;
 
-std::fstream DataLoader::data = std::fstream("collisionsObjectData.txt", std::ios::out | std::ios::in | std::ios::trunc);
 int DataLoader::previousDataPos = -1;
-const char* DataLoader::name = "collisionsObjectData.txt";
+const char* DataLoader::name = "D:\\PhysicsEngine\\src\\collisionsObjectData.txt";
 
 std::unordered_map<int, entity*> entities;
 
 sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(20.000000, -5.000000), glm::vec2(10.000000, 10.000000), 0.000000, &entities, &counter, &DataLoader::data, &shared);
-entity rect("player", glm::vec2(-200.000000, -300.000000), glm::vec2(40.000000, 40.000000), 0.000000, &entities, &counter, &DataLoader::data, &shared);
-entity rect2("big rect", glm::vec2(200.000000, -300.000000), glm::vec2(40.000000, 100.000000), 0.000000, &entities, &counter, &DataLoader::data, &shared);
+entity bottomFloor("small rect", glm::vec2(20.000000, -5.000000), glm::vec2(10.000000, 10.000000), 0.000000, &entities, &counter, &shared);
+entity rect("player", glm::vec2(-200.000000, -300.000000), glm::vec2(40.000000, 40.000000), 0.000000, &entities, &counter, &shared);
+entity rect2("big rect", glm::vec2(200.000000, -300.000000), glm::vec2(40.000000, 100.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
 point rDebugPoint(0, 0, 6);
@@ -59,16 +59,16 @@ spatialHashGrid grid(500, 500, glm::vec2(4, 4), glm::vec2(-300, -400));
 ray r(glm::vec2(-50, -300), glm::vec2(0.35, 1.4), 50, &grid);
 
 std::unordered_map<int, entity*>* gui::entityList = &entities;
-
 int gui::currentID = -1;
 bool gui::editMode = false;
 bool gui::saveAll = false;
 int gui::maxEntityCount = counter - 1;
 
+std::string fileLoader::rootPath = ROOT_DIR;
+
 glm::vec2 mousePos;
 
 int main() { 
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -76,7 +76,7 @@ int main() {
     #ifdef __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     #endif
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow((int)windowWidth, (int)windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -115,12 +115,12 @@ int main() {
     r.layer = 1;
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
-    rDebugPoint.setLayer(2);
+    rDebugPoint.setLayer(maxLayers);
 
     grid.setColor(glm::vec3(1, 0.5f, 1));
     grid.setLayer(0);
 
-    rect.polygonInstance.initRectangle();;
+    rect.polygonInstance.initRectangle();
     bottomFloor.polygonInstance.initRectangle();
     rect2.polygonInstance.initRectangle();
 
@@ -135,6 +135,7 @@ int main() {
     Shader shader("gravityVShader", "gravityFShader");
     Shader pointShader("pointVShader", "gravityFShader");
     Shader rayShader("rayVShader", "gravityFShader");
+
 
 
     configureShader(shader);
@@ -224,8 +225,8 @@ int main() {
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    windowWidth = width;
-    windowHeight = height;
+    windowWidth = (float)width;
+    windowHeight = (float)height;
 }
 void processInput(GLFWwindow* window)
 {
