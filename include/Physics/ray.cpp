@@ -32,7 +32,7 @@ void ray::setColor(glm::vec3 col)
 }
 void ray::setLayer(int l)
 {
-    layer = l;
+    layer = (float)l;
 }
 void ray::bufferNewData()
 {

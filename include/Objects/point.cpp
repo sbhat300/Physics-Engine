@@ -36,7 +36,7 @@ void point::setColor(glm::vec3 col)
 }
 void point::setLayer(int l)
 {
-    layer = l;
+    layer = (float)l;
     position.z = layer;
 }
 void point::renderPoint()

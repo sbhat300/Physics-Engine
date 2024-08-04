@@ -115,6 +115,7 @@ int main() {
     rect2.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1, 1), 0);
     /*-----END-----*/
 
+
     r.layer = 1;
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -127,8 +128,8 @@ int main() {
     bottomFloor.polygonInstance.initRectangle();
     rect2.polygonInstance.initRectangle();
 
-    rect2.polygonColliderInstance.initRectangle();
-    rect.polygonColliderInstance.initRectangle();
+    rect2.polygonColliderInstance.initRectangle(true);
+    rect.polygonColliderInstance.initRectangle(true);
     bottomFloor.polygonColliderInstance.initRectangle();
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;
@@ -285,7 +286,7 @@ void setCamSettings()
 }
 void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
-    std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
+    std::cout << glm::to_string(collisionNormal) << " " << (float)penetrationDepth << std::endl;
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {

@@ -21,7 +21,7 @@ class polygonCollider
             glm::vec2 points[2];
             int numPoints;
         };
-
+        bool aabb;
         int id;
         bool collide;
         std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> collisionCallback;
@@ -52,7 +52,7 @@ class polygonCollider
         void setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
         bool pointInPolygon(glm::vec2 point);
         void initPolygon(int vertexCount, float* p, bool normalize = true);
-        void initRectangle(bool normalize = true);
+        void initRectangle(bool axisAligned = false, bool normalize = true);
         void calcPoints();
         void updatePoints();
         void updatePointsNoRemove();
@@ -67,6 +67,7 @@ class polygonCollider
         float minMax[2];
         
         void checkCollisions();
+        void checkAABBCollisions(polygonCollider* second);
         void project(glm::vec2* axis, std::vector<glm::vec2> &vertices, int numVertices);
         edge findEdge(std::vector<glm::vec2> &points, int numVertices, glm::vec2 collisionNormal);
         clippedPoints clipPoints(glm::vec2* point1, glm::vec2* point2, glm::vec2* referenceEdge, float* offset);

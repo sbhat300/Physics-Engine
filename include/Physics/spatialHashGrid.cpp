@@ -14,10 +14,10 @@ spatialHashGrid::spatialHashGrid(float w, float h, glm::vec2 nc, glm::vec2 s)
     height = h;
     numCells = nc;
     start = s;
-    grid.resize(numCells.x);
+    grid.resize((int)numCells.x);
     for(int i = 0; i < numCells.x; i++)
     {
-        grid[i].resize(numCells.y);
+        grid[i].resize((int)numCells.y);
     }
     queryID = 1;
     cellWidth = width / numCells.x;
@@ -25,7 +25,7 @@ spatialHashGrid::spatialHashGrid(float w, float h, glm::vec2 nc, glm::vec2 s)
 }
 void spatialHashGrid::setLayer(int l)
 {
-    layer = l;
+    layer = (float)l;
 }
 void spatialHashGrid::setColor(glm::vec3 col)
 {
@@ -89,7 +89,7 @@ void spatialHashGrid::add(polygonCollider* obj)
         for(int j = lower.second; j <= upper.second; j++)
         {
             grid[i][j].push_back(obj);
-            (*obj).shgIndex[xInd].push_back(grid[i][j].size() - 1);
+            (*obj).shgIndex[xInd].push_back((int)grid[i][j].size() - 1);
         }
     }
 } 
@@ -139,14 +139,14 @@ std::pair<int, int> spatialHashGrid::getCellIndex(float x, float y)
 {
     float xInd = clamp((x - start.x) / width, 0, 1);
     float yInd = clamp((y - start.y) / height, 0, 1);
-    std::pair<int, int> out(std::min<float>(numCells.x - 1, floor(xInd * (numCells.x))), std::min<float>(numCells.y - 1, floor(yInd * (numCells.y))));
+    std::pair<int, int> out((int)std::min<float>(numCells.x - 1, floor(xInd * (numCells.x))), (int)std::min<float>(numCells.y - 1, floor(yInd * (numCells.y))));
     return out;
 }
 std::pair<int, int> spatialHashGrid::getCellIndexNoClamp(float x, float y)
 {
     float xInd = (x - start.x) / width;
     float yInd = (y - start.y) / height;
-    std::pair<int, int> out(floor(xInd * (numCells.x)), floor(yInd * (numCells.y)));
+    std::pair<int, int> out((int)floor(xInd * (numCells.x)), (int)floor(yInd * (numCells.y)));
     return out;
 }
 float spatialHashGrid::clamp(float n, float lower, float upper) {
@@ -197,8 +197,8 @@ std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
     queryID++;
     do
     {
-        int xInd = clamp(lower.first, 0, numCells.x - 1);
-        int yInd = clamp(lower.second, 0, numCells.y - 1);
+        int xInd = (int)clamp((float)lower.first, 0, numCells.x - 1);
+        int yInd = (int)clamp((float)lower.second, 0, numCells.y - 1);
         if(lower.first != xInd || lower.second != yInd) return output;
         for(auto object = grid[xInd][yInd].begin(); object != grid[xInd][yInd].end(); object++)
         {
@@ -255,7 +255,7 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
     }
     if(lower.first == upper.first && lower.second == upper.second)
     {
-        test = (*r).getFirstCollision(&grid[clamp(lower.first, 0, numCells.x - 1)][clamp(lower.second, 0, numCells.y - 1)]);
+        test = (*r).getFirstCollision(&grid[(int)clamp((float)lower.first, 0, numCells.x - 1)][(int)clamp((float)lower.second, 0, numCells.y - 1)]);
         if(test.first) return test;
     }
     int stepX, stepY;
@@ -295,8 +295,8 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
     queryID++;
     do
     {
-        int xInd = clamp(lower.first, 0, numCells.x - 1);
-        int yInd = clamp(lower.second, 0, numCells.y - 1);
+        int xInd = (int)clamp((float)lower.first, 0, numCells.x - 1);
+        int yInd = (int)clamp((float)lower.second, 0, numCells.y - 1);
         if(lower.first != xInd || lower.second != yInd) return test;
         test = (*r).getFirstCollision(&grid[xInd][yInd]);
         if(test.first) return test;

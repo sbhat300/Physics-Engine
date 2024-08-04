@@ -129,6 +129,7 @@ void gui::polygonColliderOptions()
     
     if(ImGui::TreeNode("Polygon Collider"))
     {
+        ImGui::Text("AABB: %s", (*(*entityList)[currentID]).polygonColliderInstance.aabb ? "true" : "false");
         float nums[2] = {(*(*entityList)[currentID]).polygonColliderInstance.positionOffset[0], 
                         (*(*entityList)[currentID]).polygonColliderInstance.positionOffset[1]};
         if(ImGui::DragFloat2("Position offset", nums, 1))

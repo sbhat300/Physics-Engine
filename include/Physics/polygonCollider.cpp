@@ -30,6 +30,7 @@ polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s,
     base = b;
     queryID = 0;
     shouldRenderBounds = false;
+    aabb = false;
 }
 void polygonCollider::updateCollider()
 {
@@ -74,7 +75,7 @@ void polygonCollider::initPolygon(int vertexCount, float* p, bool normalize)
     updateFurthestPoint();
     initialized = true;
 }
-void polygonCollider::initRectangle(bool normalize)
+void polygonCollider::initRectangle(bool axisAligned, bool normalize)
 {
     float p[] = {
         1 / 2.0f,  1 / 2.0f,  // top right
@@ -93,6 +94,7 @@ void polygonCollider::initRectangle(bool normalize)
     if(normalize) normalizePoints();
     updatePointsNoRemove();
     updateFurthestPoint();
+    aabb = axisAligned;
     initialized = true;
 }
 void polygonCollider::updatePoints()
@@ -120,14 +122,20 @@ void polygonCollider::calcPoints()
         glm::vec2 point = glm::vec2(vertices[i], vertices[i + 1]);
         points[i / 2] = point * *baseScale * scaleOffset;
         float temp[2] = {points[i / 2].x, points[i / 2].y};
-        points[i / 2].x = temp[0] * cos(glm::radians(-(rotationOffset))) - temp[1] * sin(glm::radians(-(rotationOffset)));
-        points[i / 2].y = temp[0] * sin(glm::radians(-(rotationOffset))) + temp[1] * cos(glm::radians(-(rotationOffset)));
+        if(!aabb)
+        {
+            points[i / 2].x = temp[0] * cos(glm::radians(-(rotationOffset))) - temp[1] * sin(glm::radians(-(rotationOffset)));
+            points[i / 2].y = temp[0] * sin(glm::radians(-(rotationOffset))) + temp[1] * cos(glm::radians(-(rotationOffset)));
+        }
         points[i / 2].x += positionOffset.x;
         points[i / 2].y += positionOffset.y;
         temp[0] = points[i / 2].x;
         temp[1] = points[i / 2].y;
-        points[i / 2].x = temp[0] * cos(glm::radians(-(*baseRotation))) - temp[1] * sin(glm::radians(-(*baseRotation)));
-        points[i / 2].y = temp[0] * sin(glm::radians(-(*baseRotation))) + temp[1] * cos(glm::radians(-(*baseRotation)));
+        if(!aabb)
+        {
+            points[i / 2].x = temp[0] * cos(glm::radians(-(*baseRotation))) - temp[1] * sin(glm::radians(-(*baseRotation)));
+            points[i / 2].y = temp[0] * sin(glm::radians(-(*baseRotation))) + temp[1] * cos(glm::radians(-(*baseRotation)));
+        }
         points[i / 2].x += (*basePosition).x;
         points[i / 2].y += (*basePosition).y;
         centroid.x += points[i / 2].x;
@@ -196,6 +204,11 @@ void polygonCollider::checkCollisions()
         float centerDist = glm::length2(centroid - (*test).centroid);
         float radiusDist = furthestDistance + (*test).furthestDistance;
         if(centerDist > radiusDist * radiusDist) continue;
+        if(aabb && (*test).aabb)
+        {
+            checkAABBCollisions(test);
+            continue;
+        }
         std::vector<glm::vec2> axes;
         std::set<std::pair<float, float>> currentAxes;
         for(int i = 0; i < numVertices; i++)
@@ -383,6 +396,31 @@ polygonCollider::clippedPoints polygonCollider::clipPoints(glm::vec2* point1, gl
         output.numPoints++;
     }
     return output;
+}
+void polygonCollider::checkAABBCollisions(polygonCollider* second)
+{
+    glm::vec2 halfA = (*baseScale * scaleOffset) / 2.0f;
+    glm::vec2 halfB = (*(*second).baseScale * (*second).scaleOffset) / 2.0f;
+    glm::vec2 delta = (*second).centroid - centroid;
+    if(halfA.x + halfB.x <= std::abs(delta.x) || halfA.y + halfB.y <= std::abs(delta.y)) return;
+    glm::vec2 maxA = centroid + halfA;
+    glm::vec2 minA = centroid - halfA;
+    glm::vec2 maxB = (*second).centroid + halfB;
+    glm::vec2 minB = (*second).centroid - halfB;
+    glm::vec2 normals[4] = {glm::vec2(-1, 0), glm::vec2(1, 0), glm::vec2(0, -1), glm::vec2(0, 1)};
+    glm::vec2 normal;
+    float distances[4] = {maxB.x - minA.x, maxA.x - minB.x, maxB.y - minA.y, maxA.y - minB.y};
+    float penetration = distances[0];
+    normal = normals[0];
+    for(int i = 1; i < 4; i++)
+    {
+        if(distances[i] < penetration)
+        {
+            penetration = distances[i];
+            normal = normals[i];
+        }
+    }
+    collisionCallback(id, (*second).id, normal, penetration, 0, centroid, (*second).centroid);
 }
 void polygonCollider::setPositionOffset(float x, float y)
 {
