@@ -13,6 +13,7 @@ namespace gui
     extern bool editMode;
     extern bool saveAll;
     extern int maxEntityCount;
+    extern float fps;
     extern std::unordered_map<int, entity*>* entityList;
     extern ImGuiIO& io;
     void init(GLFWwindow *window);

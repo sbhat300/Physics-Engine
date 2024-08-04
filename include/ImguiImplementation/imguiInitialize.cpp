@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <FileLoader/objDataLoader.h>
 #include <algorithm>
+#include <iostream>
 
 /*
 TO COMPLETELY REMOVE FROM BUILD:
@@ -26,6 +27,7 @@ void gui::preLoop()
     {
         ImGui::Begin("Editor");
         ImGui::PushItemWidth(100);
+        ImGui::Text("FPS %f", fps);
         ImGui::Checkbox("Save all", &saveAll);
         if(currentID != -1) ImGui::Checkbox("Save edits", &(*(*entityList)[currentID]).guiSave);
         entityOptions();

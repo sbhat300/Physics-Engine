@@ -14,6 +14,7 @@
 #include <list>
 #include <unordered_map>
 #include <math.h>
+#include <cmath>
 #include <Physics/rayData.h>
 #include <Physics/spatialHashGrid.h>
 #include <ImguiImplementation/imguiInitialize.h>
@@ -22,6 +23,7 @@
 #include <FileLoader/objDataLoader.h>
 #include <FileLoader/fileLoader.h>
 #include <sharedData.h>
+#include <setup.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -34,8 +36,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void bufferMatrices(int ubo);
 
 float windowHeight = 600, windowWidth = 1200;
-int maxLayers = 10;
-camera2D camera(glm::vec3(0, 0, maxLayers));
+int setup::maxLayers = 10;
+camera2D camera(glm::vec3(0, 0, setup::maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 int counter = 0;
 
@@ -63,6 +65,7 @@ int gui::currentID = -1;
 bool gui::editMode = false;
 bool gui::saveAll = false;
 int gui::maxEntityCount = counter - 1;
+float gui::fps = 0;
 
 std::string fileLoader::rootPath = ROOT_DIR;
 
@@ -115,7 +118,7 @@ int main() {
     r.layer = 1;
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
-    rDebugPoint.setLayer(maxLayers);
+    rDebugPoint.setLayer(setup::maxLayers - 1);
 
     grid.setColor(glm::vec3(1, 0.5f, 1));
     grid.setLayer(0);
@@ -157,6 +160,8 @@ int main() {
 
     setCamSettings();
 
+    float fpsTimer = 0;
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -164,6 +169,13 @@ int main() {
         gui::preLoop();
 
         updateDeltaTime();
+        
+        fpsTimer -= deltaTime;
+        if(fpsTimer < 0)
+        {
+            gui::fps = std::round(1 / deltaTime);
+            fpsTimer = 1;
+        }
         processInput(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

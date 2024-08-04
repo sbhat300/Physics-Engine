@@ -10,6 +10,8 @@
 #include <glm/gtx/norm.hpp>
 #include <set>
 #include "Physics/polygonCollider.h"
+#include <setup.h>
+#include <cmath>
 
 polygonCollider::polygonCollider(){}
 polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r, entity* b)
@@ -194,7 +196,8 @@ void polygonCollider::checkCollisions()
         float centerDist = glm::length2(centroid - (*test).centroid);
         float radiusDist = furthestDistance + (*test).furthestDistance;
         if(centerDist > radiusDist * radiusDist) continue;
-        std::vector<glm::vec2> axes(numVertices + (*test).numVertices);
+        std::vector<glm::vec2> axes;
+        std::set<std::pair<float, float>> currentAxes;
         for(int i = 0; i < numVertices; i++)
         {
             glm::vec2 v1(points[i].x, points[i].y);
@@ -203,7 +206,12 @@ void polygonCollider::checkCollisions()
             glm::vec2 v2(points[next].x, points[next].y);
             glm::vec2 normal = v1 - v2;
             normal = glm::normalize(glm::vec2(-normal.y, normal.x));
-            axes[i] = normal;
+            normal = glm::vec2(std::round(normal.x * 10000.0f) / 10000.0f, std::round(normal.y * 10000.0f) / 10000.0f);            if(currentAxes.find(std::pair<float, float>(normal.x, normal.y)) == currentAxes.end())
+            {
+                axes.push_back(normal);
+                currentAxes.insert(std::pair<float, float>(-normal.x, -normal.y));
+                currentAxes.insert(std::pair<float, float>(normal.x, normal.y));
+            }
         }
         for(int i = 0; i < (*test).numVertices; i++)
         {
@@ -212,8 +220,13 @@ void polygonCollider::checkCollisions()
             if(next >= (*test).numVertices) next = 0;
             glm::vec2 v2((*test).points[next].x, (*test).points[next].y);
             glm::vec2 normal = v1 - v2;
-            normal = glm::normalize(glm::vec3(-normal.y, normal.x, 0));
-            axes[numVertices + i] = normal;
+            normal = glm::normalize(glm::vec2(-normal.y, normal.x));
+            normal = glm::vec2(std::round(normal.x * 10000.0f) / 10000.0f, std::round(normal.y * 10000.0f) / 10000.0f);
+            if(currentAxes.find(std::pair<float, float>(normal.x, normal.y)) == currentAxes.end())
+            {
+                axes.push_back(normal);
+                currentAxes.insert(std::pair<float, float>(-normal.x, -normal.y));
+            }
         }
         int notColliding = false;
         for(int i = 0; i < axes.size(); i++)
@@ -288,7 +301,7 @@ void polygonCollider::checkCollisions()
         {
             glUseProgram(debugShaderProgram);
             debugPoint.setColor(glm::vec3(1.0f, 1.0f, 0.0f));
-            debugPoint.setLayer(3);
+            debugPoint.setLayer(setup::maxLayers - 1);
             debugPoint.setPosition(clipped.points[i].x, clipped.points[i].y);
             debugPoint.render();
         }
@@ -406,7 +419,7 @@ void polygonCollider::renderColliderBounds()
     for(int i = 0; i < numVertices; i++)
     {
         debugPoint.setPosition(points[i].x, points[i].y);
-        debugPoint.setLayer(2);
+        debugPoint.setLayer(setup::maxLayers - 1);
         debugPoint.size = 6;
         debugPoint.render();
     }
