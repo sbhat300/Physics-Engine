@@ -128,8 +128,8 @@ int main() {
     bottomFloor.polygonInstance.initRectangle();
     rect2.polygonInstance.initRectangle();
 
-    rect2.polygonColliderInstance.initRectangle(true);
-    rect.polygonColliderInstance.initRectangle(true);
+    rect2.polygonColliderInstance.initRectangle();
+    rect.polygonColliderInstance.initRectangle();
     bottomFloor.polygonColliderInstance.initRectangle();
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
     bottomFloor.polygonColliderInstance.collide = false;

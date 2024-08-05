@@ -15,6 +15,7 @@ class spatialHashGrid
         float width, height;
         glm::vec2 start;
         glm::vec2 numCells;
+        int debugShaderProgram;
         float layer;
         glm::vec3 color;
         spatialHashGrid(float w = 0, float h = 0, glm::vec2 nc = glm::vec2(0, 0), glm::vec2 s = glm::vec2(0, 0));

@@ -33,6 +33,7 @@ void gui::preLoop()
         entityOptions();
         if(currentID != -1 && (*(*entityList)[currentID]).contain[0]) polygonOptions();
         if(currentID != -1 && (*(*entityList)[currentID]).contain[1]) polygonColliderOptions();
+        shg();
         ImGui::End();
     }
 }
@@ -153,6 +154,37 @@ void gui::polygonColliderOptions()
             }
         }
         ImGui::Checkbox("Render bounds", &(*(*entityList)[currentID]).polygonColliderInstance.shouldRenderBounds);
+        ImGui::TreePop();
+    }
+}
+void gui::shg()
+{
+    if(ImGui::TreeNode("Spatial Hash Grid"))
+    {
+        if(ImGui::BeginTable("SHG", (int)(*spatialHash).numCells.x))
+        {
+            for(int i = (int)(*spatialHash).numCells.y - 1; i >= 0; i--)
+            {
+                for(int j = 0; j < (*spatialHash).numCells.x; j++)
+                {
+                    std::vector<polygonCollider*> colliders = (*spatialHash).grid[j][i];
+                    std::string output;
+                    if(colliders.size() == 0) output  = "N/A";
+                    else 
+                    {
+                        output = "";
+                        for(int i = 0; i < colliders.size() - 1; i++)
+                        {
+                            output += std::to_string((*colliders[i]).id) + ",";
+                        }
+                        output += std::to_string((*colliders[colliders.size() - 1]).id);
+                    }
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%s", output.c_str());
+                }
+            }
+            ImGui::EndTable();
+        }
         ImGui::TreePop();
     }
 }

@@ -35,6 +35,7 @@ void spatialHashGrid::drawGrid()
 {
     float xOff = width / numCells.x;
     GLint currentShader = 0;
+    glUseProgram(debugShaderProgram);
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentShader);  
     int colorLoc = glGetUniformLocation(currentShader, "col");
     for(int i = 0; i < numCells.x + 1; i++)

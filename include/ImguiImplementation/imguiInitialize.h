@@ -6,6 +6,7 @@
 #include <entity.h>
 #include <unordered_map>
 #include <string>
+#include <Physics/spatialHashGrid.h>
 
 namespace gui
 {
@@ -16,11 +17,13 @@ namespace gui
     extern float fps;
     extern std::unordered_map<int, entity*>* entityList;
     extern ImGuiIO& io;
+    extern spatialHashGrid* spatialHash;
     void init(GLFWwindow *window);
     void preLoop();
     void entityOptions();
     void polygonOptions();
     void polygonColliderOptions();
+    void shg();
     std::string getEntityData(int i, bool saved);
     void postLoop();
     void terminate();

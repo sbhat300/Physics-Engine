@@ -1,4 +1,4 @@
-code = open('src/collisions.cpp', 'r+')
+code = open('src/collisionResolution.cpp', 'r+')
 if code:
     print('Code file opened')
 data = open('src/collisionsObjectData.txt', 'r')

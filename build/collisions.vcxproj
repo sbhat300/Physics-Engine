@@ -327,7 +327,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="D:\PhysicsEngine\src\collisions.cpp" />
+    <ClCompile Include="D:\PhysicsEngine\src\collisionResolution.cpp" />
     <ClCompile Include="D:\PhysicsEngine\src\glad.c" />
     <ClCompile Include="D:\PhysicsEngine\include\camera\camera2D.cpp" />
     <ClCompile Include="D:\PhysicsEngine\include\entity.cpp" />

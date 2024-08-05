@@ -7,7 +7,7 @@ configure_file(${PROJECT_BINARY_DIR}/config.h.in config.h)
 
 file(GLOB imgui_SRC ${PROJECT_SOURCE_DIR}/include/imgui/*.cpp)
 
-add_executable(${PROJECT_NAME}  ${PROJECT_SOURCE_DIR}/src/collisions.cpp 
+add_executable(${PROJECT_NAME}  ${PROJECT_SOURCE_DIR}/src/collisionResolution.cpp 
                                 ${PROJECT_SOURCE_DIR}/src/glad.c
                                 ${PROJECT_SOURCE_DIR}/include/camera/camera2D.cpp
                                 ${PROJECT_SOURCE_DIR}/include/entity.cpp
