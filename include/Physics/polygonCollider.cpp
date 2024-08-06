@@ -35,7 +35,6 @@ polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s,
 void polygonCollider::updateCollider()
 {
     if(collide) checkCollisions();
-    if(shouldRenderBounds) renderColliderBounds();
 }
 void polygonCollider::setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb)
 {
@@ -271,7 +270,24 @@ void polygonCollider::checkCollisions()
         edge edge2 = findEdge((*test).points, (*test).numVertices, -smallestAxis);
         glm::vec2 referenceVector;
         edge reference, incident;
-        if(std::abs(glm::dot(glm::normalize(edge1.v2 - edge1.v1), smallestAxis)) <= std::abs(glm::dot(glm::normalize(edge2.v2 - edge2.v1), smallestAxis)))
+        float firstAlignment = std::abs(glm::dot(glm::normalize(edge1.v2 - edge1.v1), smallestAxis));
+        float secondAlignment = std::abs(glm::dot(glm::normalize(edge2.v2 - edge2.v1), smallestAxis));
+        if(firstAlignment == secondAlignment)
+        {
+            if(id > (*test).id)
+            {
+                reference = edge1;
+                referenceVector = glm::normalize(edge1.v2 - edge1.v1);
+                incident = edge2;
+            }
+            else
+            {
+                reference = edge2;
+                referenceVector = glm::normalize(edge2.v2 - edge2.v1);
+                incident = edge1;
+            }
+        }
+        else if(firstAlignment < secondAlignment)
         {
             reference = edge1;
             referenceVector = glm::normalize(edge1.v2 - edge1.v1);
@@ -308,15 +324,6 @@ void polygonCollider::checkCollisions()
         if(glm::dot(perpVec, clipped.points[1]) - max < 0)
         {
             clipped.numPoints--;
-        }
-        //DEBUG
-        for(int i = 0; i < clipped.numPoints; i++)
-        {
-            glUseProgram(debugShaderProgram);
-            debugPoint.setColor(glm::vec3(1.0f, 1.0f, 0.0f));
-            debugPoint.setLayer(setup::maxLayers - 1);
-            debugPoint.setPosition(clipped.points[i].x, clipped.points[i].y);
-            debugPoint.render();
         }
         collisionCallback(id, (*test).id, smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
     }

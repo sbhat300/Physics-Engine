@@ -19,6 +19,7 @@ point::point(float xPos, float yPos, float s)
     position = glm::vec3(x, y, layer);
     orig = glm::vec3(0, 0, 0);
     pointVAO = 0, pointVBO = 0;
+    debugShaderProgram = -1;
 }
 void point::render()
 {
@@ -42,6 +43,7 @@ void point::setLayer(int l)
 void point::renderPoint()
 {
     GLint currentShader = 0;
+    if(debugShaderProgram != -1) glUseProgram(debugShaderProgram);
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentShader);   
     if(pointVAO == 0)
     {

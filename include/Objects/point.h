@@ -13,6 +13,7 @@ class point
         glm::vec3 color;
         glm::vec3 orig;
         float layer;
+        int debugShaderProgram;
 
         point(float xPos = 0, float yPos = 0, float s = 1);
         void render();

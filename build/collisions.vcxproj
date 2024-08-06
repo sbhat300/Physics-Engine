@@ -341,6 +341,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\PhysicsEngine\include\Shader\shader.cpp" />
     <ClCompile Include="D:\PhysicsEngine\include\sharedData.cpp" />
     <ClCompile Include="D:\PhysicsEngine\include\Physics\spatialHashGrid.cpp" />
+    <ClCompile Include="D:\PhysicsEngine\include\Physics\polygonRigidbody.cpp" />
     <ClCompile Include="D:\PhysicsEngine\include\imgui\imgui.cpp" />
     <ClCompile Include="D:\PhysicsEngine\include\imgui\imgui_demo.cpp" />
     <ClCompile Include="D:\PhysicsEngine\include\imgui\imgui_draw.cpp" />

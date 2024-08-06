@@ -4,6 +4,7 @@
 namespace setup
 {
     extern int maxLayers;
+    extern float fixedDeltaTime;
 };
 
 #endif

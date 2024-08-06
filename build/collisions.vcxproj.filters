@@ -43,6 +43,9 @@
     <ClCompile Include="D:\PhysicsEngine\include\Physics\spatialHashGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\PhysicsEngine\include\Physics\polygonRigidbody.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="D:\PhysicsEngine\include\imgui\imgui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -34,11 +34,16 @@ void collisionCallback(int first, int second, glm::vec2 collisionNormal, float p
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void bufferMatrices(int ubo);
+void timestep();
+void physics();
+void render(float alpha);
 
 float windowHeight = 600, windowWidth = 1200;
 int setup::maxLayers = 10;
 camera2D camera(glm::vec3(0, 0, setup::maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
+float setup::fixedDeltaTime = 1 / 60.0f;
+float accumulator = 0;
 int counter = 0;
 
 int DataLoader::previousDataPos = -1;
@@ -57,6 +62,8 @@ entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000
 point rDebugPoint(0, 0, 6);
 
 spatialHashGrid grid(900, 700, glm::vec2(3, 3), glm::vec2(-380, -400));
+
+bool keys[26];
 
 std::unordered_map<int, entity*>* gui::entityList = &entities;
 int gui::currentID = -1;
@@ -104,14 +111,20 @@ int main() {
 
     /*-----POLYGON INITIALIZATION-----*/
 	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
-	rect.addPolygon(glm::vec2(40.000000, 40.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
+	rect.addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
 	rect2.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.200000, 0.400000, 0.300000), 1);
     /*-----END-----*/
     
     /*-----COLLIDER INITIALIZATION-----*/
 	bottomFloor.addPolygonCollider(&grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
-	rect.addPolygonCollider(&grid, glm::vec2(40.000000, 40.000000), glm::vec2(1.000000, 1.000000), 0.000000);
+	rect.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000);
 	rect2.addPolygonCollider(&grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
+    /*-----END-----*/
+
+    /*-----RIGIDBODY INITIALIZATION-----*/
+	bottomFloor.addPolygonRigidbody(10.0f, 10.0f, 0.2f);
+    rect.addPolygonRigidbody(15.0f, 10.0f, 0.4f);
+    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f);
     /*-----END-----*/
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -127,8 +140,15 @@ int main() {
     rect2.polygonColliderInstance.initRectangle();
     rect.polygonColliderInstance.initRectangle();
     bottomFloor.polygonColliderInstance.initRectangle();
+
     rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
-    bottomFloor.polygonColliderInstance.collide = false;
+    rect2.polygonColliderInstance.setCollisionCallback(collisionCallback);
+    bottomFloor.polygonColliderInstance.setCollisionCallback(collisionCallback);
+
+    bottomFloor.polygonRigidbodyInstance.setRectangleMomentOfInertia();
+    rect.polygonRigidbodyInstance.setRectangleMomentOfInertia();
+    rect2.polygonRigidbodyInstance.setRectangleMomentOfInertia();
+    // bottomFloor.polygonColliderInstance.collide = false;
 
     gui::init(window);
 
@@ -146,6 +166,10 @@ int main() {
     rect2.polygonColliderInstance.debugShaderProgram = pointShader.ID;
     bottomFloor.polygonColliderInstance.debugShaderProgram = pointShader.ID;
     grid.debugShaderProgram = rayShader.ID;
+    rect.polygonInstance.shaderProgram = shader.ID;
+    rect2.polygonInstance.shaderProgram = shader.ID;
+    bottomFloor.polygonInstance.shaderProgram = shader.ID;
+    rDebugPoint.debugShaderProgram = pointShader.ID;
 
     unsigned int matrixUBO;
     glGenBuffers(1, &matrixUBO);
@@ -179,13 +203,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         bufferMatrices(matrixUBO);
 
-        shader.use();
-        rect.polygonInstance.render();
-        bottomFloor.polygonInstance.render();
-        rect2.polygonInstance.render();
-        rect.polygonColliderInstance.updateCollider();
-        bottomFloor.polygonColliderInstance.updateCollider();
-        rect2.polygonColliderInstance.updateCollider();
+        timestep();
 
         grid.drawGrid();
 
@@ -216,9 +234,9 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rect.setRotation(rect.rotation + 50 * deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.setRotation(rect.rotation - 50 * deltaTime); 
+        keys[GLFW_KEY_E - 65] = true;
+    else 
+        keys[GLFW_KEY_E - 65] = false;
 }
 void updateDeltaTime()
 {
@@ -247,11 +265,23 @@ void setCamSettings()
 void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
     std::cout << glm::to_string(collisionNormal) << " " << (float)penetrationDepth << std::endl;
+    if(contactPoints == 1)
+    {
+        rDebugPoint.setPosition(cp1.x, cp1.y);
+        rDebugPoint.render();
+    }
+    if(contactPoints == 2)
+    {
+        rDebugPoint.setPosition(cp1.x, cp1.y);
+        rDebugPoint.render();
+        rDebugPoint.setPosition(cp2.x, cp2.y);
+        rDebugPoint.render();
+    }
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     mousePos = glm::vec2(camera.camPos.x + xpos, camera.camPos.y + (windowHeight - ypos));
-    rect.setPosition(mousePos.x, mousePos.y);
+    // rect.setPosition(mousePos.x, mousePos.y);
 }
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -259,5 +289,38 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if(!io.WantCaptureMouse && button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
     {
         gui::currentID = grid.testPoint(mousePos.x, mousePos.y);
+    }
+}
+void timestep()
+{
+    accumulator += deltaTime > 0.2f ? 0.2f : deltaTime;
+    if(accumulator > 0.2f) accumulator = 0.2f;
+    while(accumulator >= setup::fixedDeltaTime)
+    {
+        physics();
+        accumulator -= setup::fixedDeltaTime;
+    }
+    float alpha = accumulator / setup::fixedDeltaTime;
+    render(alpha);
+}
+void physics()
+{
+    rect.polygonRigidbodyInstance.addForce(0, -30 * rect.polygonRigidbodyInstance.mass);
+    bottomFloor.polygonRigidbodyInstance.addForce(0, -30 * bottomFloor.polygonRigidbodyInstance.mass);
+    for(std::pair<const int, entity*> obj : entities) 
+        if((*obj.second).contain[1]) (*obj.second).polygonColliderInstance.updateCollider();
+    for(std::pair<const int, entity*> obj : entities) 
+        if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.update();
+}
+void render(float alpha)
+{
+    for(std::pair<const int, entity*> obj : entities)
+    {
+        if((*obj.second).contain[0]) (*obj.second).polygonInstance.render(alpha);
+        if((*obj.second).contain[1])
+        {
+            if((*obj.second).polygonColliderInstance.shouldRenderBounds) 
+                (*obj.second).polygonColliderInstance.renderColliderBounds(); //FOR DEBUG REMOVE
+        }
     }
 }

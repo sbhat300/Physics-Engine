@@ -27,6 +27,16 @@ polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, in
     polygonVAO = 0;
     polygonVBO = 0;
     base = b;
+    shaderProgram = -1;
+}
+void polygon::initPrevious()
+{
+    prevBasePos = *basePosition;
+    prevBaseRot = *baseRotation;
+    prevBaseScale = *baseScale;
+    prevScale = scaleOffset;
+    prevRot = rotationOffset;
+    prevPos = positionOffset;
 }
 void polygon::initPolygon(int vertexCount, float* p, int indexCount, int* ind)
 {
@@ -37,6 +47,7 @@ void polygon::initPolygon(int vertexCount, float* p, int indexCount, int* ind)
     memcpy(&indices[0], ind, indexCount * sizeof(float));
     numIndices = indexCount;
     normalizePoints();
+    initPrevious();
     initialized = true;
 }
 void polygon::initRectangle()
@@ -44,11 +55,12 @@ void polygon::initRectangle()
     polygonVAO = (*shared).rectVAO;
     numIndices = 6;
     numVertices = 4;
+    initPrevious();
     initialized = true;
 }
-void polygon::render()
+void polygon::render(float alpha)
 {
-    renderPolygon();
+    renderPolygon(alpha);
 }
 void polygon::setPositionOffset(float x, float y)
 {
@@ -71,20 +83,21 @@ void polygon::setRotationOffset(float degrees)
 {
     rotationOffset = degrees;
 }
-void polygon::renderPolygon()
+void polygon::renderPolygon(float alpha)
 {
     GLint currentShader = 0;
+    if(shaderProgram != -1) glUseProgram(shaderProgram);
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentShader);   
     if(polygonVAO == 0)
     {
         initVAO();
     }
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(*basePosition, layer));
-    model = glm::rotate(model, glm::radians(*baseRotation), glm::vec3(0, 0, -1));
-    model = glm::translate(model, glm::vec3(positionOffset, 0));
-    model = glm::rotate(model, glm::radians(rotationOffset), glm::vec3(0, 0, -1));
-    model = glm::scale(model, glm::vec3(*baseScale * scaleOffset, 0));
+    model = glm::translate(model, glm::vec3(interpolate(*basePosition, prevBasePos, alpha), layer));
+    model = glm::rotate(model, glm::radians(interpolate(*baseRotation, prevBaseRot, alpha)), glm::vec3(0, 0, -1));
+    model = glm::translate(model, glm::vec3(interpolate(positionOffset, prevPos, alpha), 0));
+    model = glm::rotate(model, glm::radians(interpolate(rotationOffset, prevRot, alpha)), glm::vec3(0, 0, -1));
+    model = glm::scale(model, glm::vec3(interpolate(*baseScale * scaleOffset, prevBaseScale * prevScale, alpha), 0));
     int modelLoc = glGetUniformLocation(currentShader, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     int colorLoc = glGetUniformLocation(currentShader, "col");
@@ -92,6 +105,12 @@ void polygon::renderPolygon()
     glBindVertexArray(polygonVAO);
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);             
+    prevBasePos = *basePosition;
+    prevBaseRot = *baseRotation;
+    prevBaseScale = *baseScale;
+    prevScale = scaleOffset;
+    prevRot = rotationOffset;
+    prevPos = positionOffset;
 }
 void polygon::initVAO()
 {
@@ -150,4 +169,12 @@ void polygon::normalizePoints()
         vertices[i] *= scale;;
         vertices[i + 1] *= scale;
     }
+}
+float polygon::interpolate(float first, float second, float alpha)
+{
+    return first * alpha + second * (1.0f - alpha);
+}
+glm::vec2 polygon::interpolate(glm::vec2 first, glm::vec2 second, float alpha)
+{
+    return glm::vec2(interpolate(first.x, second.x, alpha), interpolate(first.y, second.y, alpha));
 }
