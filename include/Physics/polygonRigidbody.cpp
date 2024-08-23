@@ -52,11 +52,19 @@ void polygonRigidbody::addTorque(float forceX, float forceY, float xPos, float y
     glm::vec2 torqueForce = glm::vec2(forceX, forceY);
     torque += dist.x * torqueForce.y - dist.y * torqueForce.x;
 }
+void polygonRigidbody::addTorque(float amt)
+{
+    torque += amt;
+}
 void polygonRigidbody::addAngularImpulse(float impulseX, float impulseY, float xPos, float yPos)
 {
     glm::vec2 dist = glm::vec2(xPos , yPos) - (*base).polygonColliderInstance.centroid;
     glm::vec2 impulse = glm::vec2(impulseX, impulseY);
     angularImpulse += dist.x * impulse.y - dist.y * impulse.x;
+}
+void polygonRigidbody::addAngularImpulse(float amt)
+{
+    angularImpulse += amt;
 }
 void polygonRigidbody::addForceAtPoint(float forceX, float forceY, float xPos, float yPos)
 {
@@ -67,4 +75,8 @@ void polygonRigidbody::addImpulseAtPoint(float impulseX, float impulseY, float x
 {
     addAngularImpulse(impulseX, impulseY, xPos, yPos);
     addImpulse(impulseX, impulseY);
+}
+void polygonRigidbody::gravity(float amount)
+{
+    addForce(0, -amount * mass);
 }
