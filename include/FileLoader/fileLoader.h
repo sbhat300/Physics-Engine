@@ -1,7 +1,6 @@
 #ifndef FILELOADER_H
 #define FILELOADER_H
 #include <string>
-#include "config.h"
 
 namespace fileLoader
 {

@@ -25,6 +25,7 @@
 #include <sharedData.h>
 #include <setup.h>
 #include <algorithm>
+#include "config.h"
 
 struct collisionInfo
 {
