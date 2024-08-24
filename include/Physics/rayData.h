@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 struct rayData
 {
-    int id;
+    unsigned int id;
     glm::vec2 collisionPoint;
     glm::vec2 collisionNormal;
 };

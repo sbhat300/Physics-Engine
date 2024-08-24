@@ -36,7 +36,7 @@ void polygonCollider::updateCollider()
 {
     if(collide) checkCollisions();
 }
-void polygonCollider::setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb)
+void polygonCollider::setCollisionCallback(std::function<void(unsigned int, unsigned int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb)
 {
     collisionCallback = cb;
     collide = true;

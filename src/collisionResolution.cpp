@@ -24,19 +24,33 @@
 #include <FileLoader/fileLoader.h>
 #include <sharedData.h>
 #include <setup.h>
+#include <algorithm>
+
+struct collisionInfo
+{
+    unsigned int firstID, secondID;
+    int numContacts;
+    float penetrationDepth;
+    glm::vec2 collisionNormal;
+    glm::vec2 cp1, cp2;
+};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void updateDeltaTime();
 void configureShader(Shader& shader);
 void setCamSettings();
-void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2);
+void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void bufferMatrices(int ubo);
 void timestep();
 void physics();
+void registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2);
 void render(float alpha);
+bool compareCollision(collisionInfo lhs, collisionInfo rhs);
+void updateCollisions();
+
 
 float windowHeight = 600, windowWidth = 1200;
 int setup::maxLayers = 10;
@@ -44,7 +58,7 @@ camera2D camera(glm::vec3(0, 0, setup::maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 float setup::fixedDeltaTime = 1 / 60.0f;
 float accumulator = 0;
-int counter = 0;
+unsigned int counter = 0;
 
 int DataLoader::previousDataPos = -1;
 const char* DataLoader::name = "D:\\PhysicsEngine\\src\\collisionsObjectData.txt";
@@ -63,7 +77,10 @@ point rDebugPoint(0, 0, 6);
 
 spatialHashGrid grid(900, 700, glm::vec2(3, 3), glm::vec2(-380, -400));
 
+std::vector<collisionInfo> collisions;
+
 bool keys[26];
+const unsigned char KEY_OFFSET = 65;
 
 std::unordered_map<int, entity*>* gui::entityList = &entities;
 int gui::currentID = -1;
@@ -234,9 +251,9 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        keys[GLFW_KEY_E - 65] = true;
+        keys[GLFW_KEY_E - KEY_OFFSET] = true;
     else 
-        keys[GLFW_KEY_E - 65] = false;
+        keys[GLFW_KEY_E - KEY_OFFSET] = false;
 }
 void updateDeltaTime()
 {
@@ -262,7 +279,7 @@ void setCamSettings()
     camera.camPos = glm::vec3(-windowWidth / 2, -windowHeight / 2, 10);
     camera.speed = 200.0f;
 }
-void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
+void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
     std::cout << glm::to_string(collisionNormal) << " " << (float)penetrationDepth << std::endl;
     if(contactPoints == 1)
@@ -277,6 +294,7 @@ void collisionCallback(int first, int second, glm::vec2 collisionNormal, float p
         rDebugPoint.setPosition(cp2.x, cp2.y);
         rDebugPoint.render();
     }
+    registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -305,10 +323,9 @@ void timestep()
 }
 void physics()
 {
-    rect.polygonRigidbodyInstance.addForce(0, -30 * rect.polygonRigidbodyInstance.mass);
-    bottomFloor.polygonRigidbodyInstance.addForce(0, -30 * bottomFloor.polygonRigidbodyInstance.mass);
-    for(std::pair<const int, entity*> obj : entities) 
-        if((*obj.second).contain[1]) (*obj.second).polygonColliderInstance.updateCollider();
+    rect.polygonRigidbodyInstance.gravity(30);
+    bottomFloor.polygonRigidbodyInstance.gravity(30);
+    updateCollisions();
     for(std::pair<const int, entity*> obj : entities) 
         if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.update();
 }
@@ -323,4 +340,51 @@ void render(float alpha)
                 (*obj.second).polygonColliderInstance.renderColliderBounds(); //FOR DEBUG REMOVE
         }
     }
+}
+void registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2)
+{
+    collisionInfo newCollision;
+    if(first < second)
+    {
+        newCollision.firstID = first;
+        newCollision.secondID = second;
+    }
+    else
+    {
+        newCollision.secondID = first;
+        newCollision.firstID = second;
+    }
+    newCollision.numContacts = numContactPoints;
+    newCollision.penetrationDepth = penDepth;
+    newCollision.cp1 = point1;
+    newCollision.cp2 = point2;
+    newCollision.collisionNormal = normal;
+    collisions.push_back(newCollision);
+}
+bool compareCollision(collisionInfo lhs, collisionInfo rhs)
+{
+    if(lhs.firstID < rhs.firstID) return true;
+    if(lhs.firstID == rhs.firstID) return lhs.secondID < rhs.secondID;
+    return false;
+}
+void updateCollisions()
+{
+    collisions.clear();
+    for(std::pair<const int, entity*> obj : entities) 
+        if((*obj.second).contain[1]) (*obj.second).polygonColliderInstance.updateCollider();
+    std::sort(collisions.begin(), collisions.end(), compareCollision);
+    std::vector<collisionInfo> uniqueCollisions;
+    int i = 0;
+    while(i < collisions.size())
+    {
+        uniqueCollisions.push_back(*(collisions.begin() + i));
+        i++;
+        while(i < collisions.size())
+        {
+            auto collision = collisions.begin() + i;
+            if((*collision).firstID != uniqueCollisions.back().firstID || (*collision).secondID != uniqueCollisions.back().secondID) break;
+            i++;
+        }
+    }
+    collisions = uniqueCollisions;
 }

@@ -22,9 +22,9 @@ class polygonCollider
             int numPoints;
         };
         bool aabb;
-        int id;
+        unsigned int id;
         bool collide;
-        std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> collisionCallback;
+        std::function<void(unsigned int, unsigned int, glm::vec2, float, int, glm::vec2, glm::vec2)> collisionCallback;
         int debugShaderProgram;
         std::vector<glm::vec2> points;
         std::vector<float> vertices;
@@ -49,7 +49,7 @@ class polygonCollider
         polygonCollider();
         polygonCollider(spatialHashGrid* spg, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, entity* b = 0);
         void updateCollider();
-        void setCollisionCallback(std::function<void(int, int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
+        void setCollisionCallback(std::function<void(unsigned int, unsigned int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb);
         bool pointInPolygon(glm::vec2 point);
         void initPolygon(int vertexCount, float* p, bool normalize = true);
         void initRectangle(bool axisAligned = false, bool normalize = true);
