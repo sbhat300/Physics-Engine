@@ -3,7 +3,7 @@ project(Collisions VERSION 2.5.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
-configure_file(${PROJECT_BINARY_DIR}/config.h.in config.h)
+configure_file(${PROJECT_SOURCE_DIR}/config.h.in config.h)
 
 file(GLOB imgui_SRC ${PROJECT_SOURCE_DIR}/include/imgui/*.cpp)
 
