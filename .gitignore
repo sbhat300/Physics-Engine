@@ -9,3 +9,4 @@ include/glm/
 src/collisions.dSYM/
 .DS_Store
 /build
+lib/libglfw.3.dylib
