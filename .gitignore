@@ -8,3 +8,4 @@ lib/libglfw.3.4.dylib
 include/glm/
 src/collisions.dSYM/
 .DS_Store
+/build
