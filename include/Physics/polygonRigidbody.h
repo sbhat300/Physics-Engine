@@ -3,7 +3,7 @@
 
 class entity;
 #include <glm/glm.hpp>
-
+#include <vector>
 class polygonRigidbody
 {
     public:
@@ -23,8 +23,10 @@ class polygonRigidbody
         void addAngularImpulse(float impulseX, float impulseY, float xPos, float yPos);
         void addAngularImpulse(float amt);
         void addImpulseAtPoint(float impulseX, float impulseY, float xPos, float yPos);
+        void applyImpulses();
         void gravity(float amount);
-        void update();
+        void updateVel();
+        void updatePos();
     private:
 };
 #endif

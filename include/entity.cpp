@@ -11,7 +11,7 @@
 #include <string>
 #include <FileLoader/objDataLoader.h>
 
-entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<int, entity*>* e, unsigned int* counter, sharedData* sh)
+entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<unsigned int, entity*>* e, unsigned int* counter, sharedData* sh)
 {
     label = l;
     id = *counter;
@@ -24,6 +24,7 @@ entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_
     entities = e;
     (*e)[id] = this;
     *counter += 1;
+    count = counter;
     shared = sh;
     guiSave = false;
 }

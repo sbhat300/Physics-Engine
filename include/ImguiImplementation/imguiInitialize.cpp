@@ -3,6 +3,7 @@
 #include <FileLoader/objDataLoader.h>
 #include <algorithm>
 #include <iostream>
+#include <glm/glm.hpp>
 
 /*
 TO COMPLETELY REMOVE FROM BUILD:
@@ -81,9 +82,9 @@ void gui::entityOptions()
             nums[1] = (*(*entityList)[currentID]).scale.y;
             if(ImGui::DragFloat2("Scale", nums, 1))
                 (*(*entityList)[currentID]).setScale(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
-            nums[0] = (*(*entityList)[currentID]).rotation;
+            nums[0] = glm::degrees((*(*entityList)[currentID]).rotation);
             if(ImGui::DragFloat("Rotation", &nums[0], 1))
-                (*(*entityList)[currentID]).setRotation(nums[0]);
+                (*(*entityList)[currentID]).setRotation(glm::radians(nums[0]));
         }
         ImGui::TreePop();
     } 
@@ -100,9 +101,9 @@ void gui::polygonOptions()
         nums[1] = (*(*entityList)[currentID]).polygonInstance.scaleOffset.y;
         if(ImGui::DragFloat2("Scale offset", nums, 0.25f))
             (*(*entityList)[currentID]).polygonInstance.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
-        nums[0] = (*(*entityList)[currentID]).polygonInstance.rotationOffset;
+        nums[0] = glm::degrees((*(*entityList)[currentID]).polygonInstance.rotationOffset);
         if(ImGui::DragFloat("Rotation offset", &nums[0], 1))
-            (*(*entityList)[currentID]).polygonInstance.setRotationOffset(nums[0]);
+            (*(*entityList)[currentID]).polygonInstance.setRotationOffset(glm::radians(nums[0]));
         if((*(*entityList)[currentID]).contain[1])
         {
             if(ImGui::Button("Sync polygon/collider offsets"))
@@ -139,9 +140,9 @@ void gui::polygonColliderOptions()
         nums[1] = (*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.y;
         if(ImGui::DragFloat2("Scale offset", nums, 0.25f))
             (*(*entityList)[currentID]).polygonColliderInstance.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
-        nums[0] = (*(*entityList)[currentID]).polygonColliderInstance.rotationOffset;
+        nums[0] = glm::degrees((*(*entityList)[currentID]).polygonColliderInstance.rotationOffset);
         if(ImGui::DragFloat("Rotation offset", &nums[0], 1))
-            (*(*entityList)[currentID]).polygonColliderInstance.setRotationOffset(nums[0]);
+            (*(*entityList)[currentID]).polygonColliderInstance.setRotationOffset(glm::radians(nums[0]));
         if((*(*entityList)[currentID]).contain[0])
         {
             if(ImGui::Button("Sync collider/polygon offsets"))

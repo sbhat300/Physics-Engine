@@ -123,8 +123,8 @@ void polygonCollider::calcPoints()
         float temp[2] = {points[i / 2].x, points[i / 2].y};
         if(!aabb)
         {
-            points[i / 2].x = temp[0] * cos(glm::radians(-(rotationOffset))) - temp[1] * sin(glm::radians(-(rotationOffset)));
-            points[i / 2].y = temp[0] * sin(glm::radians(-(rotationOffset))) + temp[1] * cos(glm::radians(-(rotationOffset)));
+            points[i / 2].x = temp[0] * cos(rotationOffset) - temp[1] * sin(rotationOffset);
+            points[i / 2].y = temp[0] * sin(rotationOffset) + temp[1] * cos(rotationOffset);
         }
         points[i / 2].x += positionOffset.x;
         points[i / 2].y += positionOffset.y;
@@ -132,8 +132,8 @@ void polygonCollider::calcPoints()
         temp[1] = points[i / 2].y;
         if(!aabb)
         {
-            points[i / 2].x = temp[0] * cos(glm::radians(-(*baseRotation))) - temp[1] * sin(glm::radians(-(*baseRotation)));
-            points[i / 2].y = temp[0] * sin(glm::radians(-(*baseRotation))) + temp[1] * cos(glm::radians(-(*baseRotation)));
+            points[i / 2].x = temp[0] * cos(*baseRotation) - temp[1] * sin(*baseRotation);
+            points[i / 2].y = temp[0] * sin(*baseRotation) + temp[1] * cos(*baseRotation);
         }
         points[i / 2].x += (*basePosition).x;
         points[i / 2].y += (*basePosition).y;
@@ -202,7 +202,10 @@ void polygonCollider::checkCollisions()
         polygonCollider* test = *i;
         float centerDist = glm::length2(centroid - (*test).centroid);
         float radiusDist = furthestDistance + (*test).furthestDistance;
-        if(centerDist > radiusDist * radiusDist) continue;
+        if(centerDist > radiusDist * radiusDist) 
+        {
+            continue;
+        }
         if(aabb && (*test).aabb)
         {
             checkAABBCollisions(test);
@@ -264,7 +267,10 @@ void polygonCollider::checkCollisions()
                 if(right <= left) smallestAxis *= -1;
             }
         }
-        if(notColliding) continue;
+        if(notColliding) 
+        {
+            continue;
+        }
 
         edge edge1 = findEdge(points, numVertices, smallestAxis);
         edge edge2 = findEdge((*test).points, (*test).numVertices, -smallestAxis);
@@ -301,10 +307,11 @@ void polygonCollider::checkCollisions()
         }
         float offset = glm::dot(referenceVector, reference.v1);
         clippedPoints clipped = clipPoints(&incident.v1, &incident.v2, &referenceVector, &offset);
+
         if(clipped.numPoints < 2) 
         {
             std::cout << "1 clipping failed" << std::endl;
-            return;
+            continue;
         }
         offset = -glm::dot(referenceVector, reference.v2);
         glm::vec2 negReferenceVec = -referenceVector;
@@ -312,7 +319,7 @@ void polygonCollider::checkCollisions()
         if(clipped.numPoints < 2) 
         {
             std::cout << "2 clipping failed" << std::endl;
-            return;
+            continue;
         }
         glm::vec2 perpVec = glm::vec2(-referenceVector.y, referenceVector.x);
         float max = glm::dot(perpVec, reference.vMax);
@@ -352,7 +359,6 @@ polygonCollider::edge polygonCollider::findEdge(std::vector<glm::vec2> &points, 
             max = proj;
         }
     }
-
     glm::vec3 v1 = glm::vec3(points[index], 0);
     glm::vec3 vNext;
     glm::vec3 vPrev;
@@ -409,7 +415,10 @@ void polygonCollider::checkAABBCollisions(polygonCollider* second)
     glm::vec2 halfA = (*baseScale * scaleOffset) / 2.0f;
     glm::vec2 halfB = (*(*second).baseScale * (*second).scaleOffset) / 2.0f;
     glm::vec2 delta = (*second).centroid - centroid;
-    if(halfA.x + halfB.x <= std::abs(delta.x) || halfA.y + halfB.y <= std::abs(delta.y)) return;
+    if(halfA.x + halfB.x <= std::abs(delta.x) || halfA.y + halfB.y <= std::abs(delta.y))
+    {
+        return;
+    }
     glm::vec2 maxA = centroid + halfA;
     glm::vec2 minA = centroid - halfA;
     glm::vec2 maxB = (*second).centroid + halfB;

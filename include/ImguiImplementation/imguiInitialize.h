@@ -8,6 +8,7 @@
 #include <string>
 #include <Physics/spatialHashGrid.h>
 
+
 namespace gui
 {
     extern int currentID;
@@ -15,7 +16,7 @@ namespace gui
     extern bool saveAll;
     extern int maxEntityCount;
     extern float fps;
-    extern std::unordered_map<int, entity*>* entityList;
+    extern std::unordered_map<unsigned int, entity*>* entityList;
     extern ImGuiIO& io;
     extern spatialHashGrid* spatialHash;
     void init(GLFWwindow *window);

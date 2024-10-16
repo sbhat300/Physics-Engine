@@ -26,15 +26,9 @@
 #include <setup.h>
 #include <algorithm>
 #include "config.h"
+#include <Physics/collisionSolver.h>
+#include <mathFuncs.h>
 
-struct collisionInfo
-{
-    unsigned int firstID, secondID;
-    int numContacts;
-    float penetrationDepth;
-    glm::vec2 collisionNormal;
-    glm::vec2 cp1, cp2;
-};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -47,10 +41,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void bufferMatrices(int ubo);
 void timestep();
 void physics();
-void registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2);
 void render(float alpha);
-bool compareCollision(collisionInfo lhs, collisionInfo rhs);
-void updateCollisions();
 
 
 float windowHeight = 600, windowWidth = 1200;
@@ -58,19 +49,21 @@ int setup::maxLayers = 10;
 camera2D camera(glm::vec3(0, 0, setup::maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 float setup::fixedDeltaTime = 1 / 60.0f;
+float setup::linearDamping = 0.99f;
+float setup::angularDamping = 0.97f;
 float accumulator = 0;
 unsigned int counter = 0;
 
 int DataLoader::previousDataPos = -1;
 const char* DataLoader::name = "D:\\PhysicsEngine\\src\\collisionsObjectData.txt";
 
-std::unordered_map<int, entity*> entities;
+std::unordered_map<unsigned int, entity*> entities;
 
 sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(-79.000000, 126.000000), glm::vec2(50.000000, 50.000000), 0.000000, &entities, &counter, &shared);
-entity rect("player", glm::vec2(100.863342, 126.167450), glm::vec2(40.000000, 40.000000), 0, &entities, &counter, &shared);
+entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
+entity rect("player", glm::vec2(-50, 50), glm::vec2(40.000000, 40.000000), 0, &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
@@ -78,12 +71,12 @@ point rDebugPoint(0, 0, 6);
 
 spatialHashGrid grid(900, 700, glm::vec2(3, 3), glm::vec2(-380, -400));
 
-std::vector<collisionInfo> collisions;
+collisionSolver solver(&counter);
 
 bool keys[26];
 const unsigned char KEY_OFFSET = 65;
 
-std::unordered_map<int, entity*>* gui::entityList = &entities;
+std::unordered_map<unsigned int, entity*>* gui::entityList = &entities;
 int gui::currentID = -1;
 bool gui::editMode = false;
 bool gui::saveAll = false;
@@ -94,6 +87,7 @@ spatialHashGrid* gui::spatialHash = &grid;
 std::string fileLoader::rootPath = ROOT_DIR;
 
 glm::vec2 mousePos;
+
 
 int main() { 
     glfwInit();
@@ -127,6 +121,11 @@ int main() {
     glEnable(GL_DEPTH_TEST);  
     shared.initVAOs();
 
+    solver.entities = &entities;
+    solver.bias = 0.07f;
+    solver.slop = 0.03f;
+    solver.smallestImpulse = 0.01;
+
     /*-----POLYGON INITIALIZATION-----*/
 	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
 	rect.addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
@@ -140,8 +139,8 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 10.0f, 0.2f);
-    rect.addPolygonRigidbody(15.0f, 10.0f, 0.4f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f);
     rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f);
     /*-----END-----*/
 
@@ -197,11 +196,11 @@ int main() {
     glm::mat4 projection = glm::ortho(0.0f, windowWidth, 0.0f, windowHeight, 0.1f, 100.0f);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
+ 
     setCamSettings();
 
     float fpsTimer = 0;
-
+    
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -252,9 +251,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        keys[GLFW_KEY_E - KEY_OFFSET] = true;
-    else 
-        keys[GLFW_KEY_E - KEY_OFFSET] = false;
+        rect.polygonRigidbodyInstance.addForce(-300, 0);
 }
 void updateDeltaTime()
 {
@@ -282,7 +279,7 @@ void setCamSettings()
 }
 void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
-    std::cout << glm::to_string(collisionNormal) << " " << (float)penetrationDepth << std::endl;
+    // std::cout << glm::to_string(collisionNormal) << " " << (float)penetrationDepth << std::endl;
     if(contactPoints == 1)
     {
         rDebugPoint.setPosition(cp1.x, cp1.y);
@@ -295,7 +292,7 @@ void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collis
         rDebugPoint.setPosition(cp2.x, cp2.y);
         rDebugPoint.render();
     }
-    registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
+    solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -324,11 +321,23 @@ void timestep()
 }
 void physics()
 {
+    //add forces
     rect.polygonRigidbodyInstance.gravity(30);
     bottomFloor.polygonRigidbodyInstance.gravity(30);
-    updateCollisions();
+
+    solver.reset();
     for(std::pair<const int, entity*> obj : entities) 
-        if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.update();
+    {
+        if((*obj.second).contain[1]) (*obj.second).polygonColliderInstance.updateCollider();
+    }
+    for(std::pair<unsigned int, entity*> obj : entities) 
+        if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.updateVel();
+    //solve collisions
+    solver.updateCollisions();
+    solver.resolveCollisions();
+    for(std::pair<unsigned int, entity*> obj : entities) 
+        if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.updatePos();
+    
 }
 void render(float alpha)
 {
@@ -341,51 +350,4 @@ void render(float alpha)
                 (*obj.second).polygonColliderInstance.renderColliderBounds(); //FOR DEBUG REMOVE
         }
     }
-}
-void registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2)
-{
-    collisionInfo newCollision;
-    if(first < second)
-    {
-        newCollision.firstID = first;
-        newCollision.secondID = second;
-    }
-    else
-    {
-        newCollision.secondID = first;
-        newCollision.firstID = second;
-    }
-    newCollision.numContacts = numContactPoints;
-    newCollision.penetrationDepth = penDepth;
-    newCollision.cp1 = point1;
-    newCollision.cp2 = point2;
-    newCollision.collisionNormal = normal;
-    collisions.push_back(newCollision);
-}
-bool compareCollision(collisionInfo lhs, collisionInfo rhs)
-{
-    if(lhs.firstID < rhs.firstID) return true;
-    if(lhs.firstID == rhs.firstID) return lhs.secondID < rhs.secondID;
-    return false;
-}
-void updateCollisions()
-{
-    collisions.clear();
-    for(std::pair<const int, entity*> obj : entities) 
-        if((*obj.second).contain[1]) (*obj.second).polygonColliderInstance.updateCollider();
-    std::sort(collisions.begin(), collisions.end(), compareCollision);
-    std::vector<collisionInfo> uniqueCollisions;
-    int i = 0;
-    while(i < collisions.size())
-    {
-        uniqueCollisions.push_back(*(collisions.begin() + i));
-        i++;
-        while(i < collisions.size())
-        {
-            auto collision = collisions.begin() + i;
-            if((*collision).firstID != uniqueCollisions.back().firstID || (*collision).secondID != uniqueCollisions.back().secondID) break;
-            i++;
-        }
-    }
-    collisions = uniqueCollisions;
 }

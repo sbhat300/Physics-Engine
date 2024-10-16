@@ -94,9 +94,9 @@ void polygon::renderPolygon(float alpha)
     }
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(interpolate(*basePosition, prevBasePos, alpha), layer));
-    model = glm::rotate(model, glm::radians(interpolate(*baseRotation, prevBaseRot, alpha)), glm::vec3(0, 0, -1));
+    model = glm::rotate(model, interpolate(*baseRotation, prevBaseRot, alpha), glm::vec3(0, 0, 1));
     model = glm::translate(model, glm::vec3(interpolate(positionOffset, prevPos, alpha), 0));
-    model = glm::rotate(model, glm::radians(interpolate(rotationOffset, prevRot, alpha)), glm::vec3(0, 0, -1));
+    model = glm::rotate(model, interpolate(rotationOffset, prevRot, alpha), glm::vec3(0, 0, 1));
     model = glm::scale(model, glm::vec3(interpolate(*baseScale * scaleOffset, prevBaseScale * prevScale, alpha), 0));
     int modelLoc = glGetUniformLocation(currentShader, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));

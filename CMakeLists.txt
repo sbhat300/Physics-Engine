@@ -22,6 +22,8 @@ add_executable(${PROJECT_NAME}  ${PROJECT_SOURCE_DIR}/src/collisionResolution.cp
                                 ${PROJECT_SOURCE_DIR}/include/sharedData.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/spatialHashGrid.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/polygonRigidbody.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Physics/collisionSolver.cpp
+                                ${PROJECT_SOURCE_DIR}/include/mathFuncs.cpp
                                 ${imgui_SRC}
                                 )
 
