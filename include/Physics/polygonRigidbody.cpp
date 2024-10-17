@@ -4,7 +4,7 @@
 #include <mathFuncs.h>
 
 polygonRigidbody::polygonRigidbody(){}
-polygonRigidbody::polygonRigidbody(float m, float moi, float r, entity* b)
+polygonRigidbody::polygonRigidbody(float m, float moi, float r, float uk, float us, entity* b)
 {
     mass = m;
     momentOfInertia = moi;
@@ -19,11 +19,13 @@ polygonRigidbody::polygonRigidbody(float m, float moi, float r, entity* b)
     torque = 0;
     angularImpulse = 0;
     if(mass == 0) restitution = 0;
+    muk = uk;
+    mus = us;
 }
 void polygonRigidbody::updateVel()
 {
-    velocity += force * invMass * setup::fixedDeltaTime * setup::linearDamping;
-    angularVelocity += torque * invMomentOfInertia * setup::fixedDeltaTime * setup::angularDamping;
+    velocity += force * invMass * setup::fixedDeltaTime;
+    angularVelocity += torque * invMomentOfInertia * setup::fixedDeltaTime;
     force = glm::vec2(0.0f, 0.0f);
     impulse = glm::vec2(0.0f, 0.0f);
     torque = 0;
@@ -31,6 +33,8 @@ void polygonRigidbody::updateVel()
 }
 void polygonRigidbody::updatePos()
 {
+    velocity *= setup::linearDamping;
+    angularVelocity *= setup::angularDamping;
     glm::vec2 newPos = base->position + velocity * setup::fixedDeltaTime;
     float newRot = base->rotation + angularVelocity * setup::fixedDeltaTime;
     (*base).setPosition(newPos.x, newPos.y);

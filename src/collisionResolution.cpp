@@ -49,8 +49,8 @@ int setup::maxLayers = 10;
 camera2D camera(glm::vec3(0, 0, setup::maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
 float setup::fixedDeltaTime = 1 / 60.0f;
-float setup::linearDamping = 0.99f;
-float setup::angularDamping = 0.97f;
+float setup::linearDamping = 0.999f;
+float setup::angularDamping = 0.997f;
 float accumulator = 0;
 unsigned int counter = 0;
 
@@ -63,7 +63,7 @@ sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
 entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
-entity rect("player", glm::vec2(-50, 50), glm::vec2(40.000000, 40.000000), 0, &entities, &counter, &shared);
+entity rect("player", glm::vec2(140, 50), glm::vec2(40.000000, 40.000000), glm::radians(180.0f), &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
@@ -90,6 +90,14 @@ glm::vec2 mousePos;
 
 
 int main() { 
+    float p[] = {
+        1, 0,  // top right
+        0.5f, 1,   // top left
+        -1, 0,  // bottom left 
+    };  
+    int rectIndices[6] = { 
+                            0, 1, 2,  
+                        }; 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -123,8 +131,9 @@ int main() {
 
     solver.entities = &entities;
     solver.bias = 0.07f;
-    solver.slop = 0.03f;
-    solver.smallestImpulse = 0.01;
+    solver.slop = 0.01f;
+    solver.smallestImpulse = 0.01f;
+    solver.minRelVel2 = 0.1;
 
     /*-----POLYGON INITIALIZATION-----*/
 	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
@@ -139,9 +148,9 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f);
-    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f);
-    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     /*-----END-----*/
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -250,8 +259,10 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        rect.polygonRigidbodyInstance.addForce(-700, 0);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rect.polygonRigidbodyInstance.addForce(-300, 0);
+        rect.polygonRigidbodyInstance.addForce(700, 0);
 }
 void updateDeltaTime()
 {
@@ -322,8 +333,8 @@ void timestep()
 void physics()
 {
     //add forces
-    rect.polygonRigidbodyInstance.gravity(30);
-    bottomFloor.polygonRigidbodyInstance.gravity(30);
+    rect.polygonRigidbodyInstance.gravity(50);
+    bottomFloor.polygonRigidbodyInstance.gravity(50);
 
     solver.reset();
     for(std::pair<const int, entity*> obj : entities) 
