@@ -39,35 +39,35 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int la
 }
 void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
 {
-    polygonColliderInstance = polygonCollider(spg, p, s, r, this);
-    polygonColliderInstance.basePosition = &position;
-    polygonColliderInstance.baseScale = &scale;
-    polygonColliderInstance.baseRotation = &rotation;
-    polygonColliderInstance.id = id;
+    collider = polygonCollider(spg, p, s, r, this);
+    collider.basePosition = &position;
+    collider.baseScale = &scale;
+    collider.baseRotation = &rotation;
+    collider.id = id;
     contain[1] = true;
 }
 void entity::addPolygonRigidbody(float mass, float momentOfInertia, float restitution, float muk, float mus)
 {
-    polygonRigidbodyInstance = polygonRigidbody(mass, momentOfInertia, restitution, muk, mus, this);
+    rigidbody = polygonRigidbody(mass, momentOfInertia, restitution, muk, mus, this);
     contain[2] = true;
 }
 void entity::setPosition(float x, float y)
 {
     previousPos = glm::vec2(position.x, position.y);
     position = glm::vec2(x, y);
-    if(contain[1]) polygonColliderInstance.updatePoints();
+    if(contain[1]) collider.updatePoints();
 }
 void entity::setScale(float x, float y)
 {
     scale = glm::vec2(x, y);
     if(contain[1])
     {
-        polygonColliderInstance.updatePoints();
-        polygonColliderInstance.updateFurthestPoint();
+        collider.updatePoints();
+        collider.updateFurthestPoint();
     }
 }
 void entity::setRotation(float degrees)
 {
     rotation = degrees;
-    if(contain[1]) polygonColliderInstance.updatePoints();
+    if(contain[1]) collider.updatePoints();
 }

@@ -81,14 +81,14 @@ int main() {
 	rect2.addPolygonCollider(&grid, glm::vec2(54, 19), glm::vec2(67, 28), 99);
     /*-----END-----*/
 
-    rect2.polygonColliderInstance.initRectangle();
-    rect.polygonColliderInstance.initRectangle();
-    bottomFloor.polygonColliderInstance.initRectangle();
+    rect2.collider.initRectangle();
+    rect.collider.initRectangle();
+    bottomFloor.collider.initRectangle();
 
-    // rect.polygonColliderInstance.setPositionOffset(40, 40);
+    // rect.collider.setPositionOffset(40, 40);
     // rect.polygonInstance.setPositionOffset(40, 40);
-    rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
-    bottomFloor.polygonColliderInstance.collide = false;
+    rect.collider.setCollisionCallback(collisionCallback);
+    bottomFloor.collider.collide = false;
 
     r.layer = 1;
 
@@ -138,9 +138,9 @@ int main() {
     configureShader(shader);
     configureShader(pointShader);
     configureShader(rayShader);
-    rect.polygonColliderInstance.debugShaderProgram = pointShader.ID;
-    rect2.polygonColliderInstance.debugShaderProgram = pointShader.ID;
-    bottomFloor.polygonColliderInstance.debugShaderProgram = pointShader.ID;
+    rect.collider.debugShaderProgram = pointShader.ID;
+    rect2.collider.debugShaderProgram = pointShader.ID;
+    bottomFloor.collider.debugShaderProgram = pointShader.ID;
 
     unsigned int matrixUBO;
     glGenBuffers(1, &matrixUBO);
@@ -168,13 +168,13 @@ int main() {
         rect.polygonInstance.render();
         bottomFloor.polygonInstance.render();
         rect2.polygonInstance.render();
-        rect.polygonColliderInstance.updateCollider();
-        bottomFloor.polygonColliderInstance.updateCollider();
-        rect2.polygonColliderInstance.updateCollider();
+        rect.collider.updateCollider();
+        bottomFloor.collider.updateCollider();
+        rect2.collider.updateCollider();
         rayShader.use();
         r.render();
         // grid.drawGrid();
-        // rect.polygonColliderInstance.renderColliderBounds();
+        // rect.collider.renderColliderBounds();
         // std::pair<bool, rayData> rdata2 = r.getFirstCollision();
         // if(rdata2.first)
         // {
@@ -188,8 +188,8 @@ int main() {
             rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
             rDebugPoint.render();
         }
-        // std::cout << &(rect.polygonColliderInstance) << " " << &(rect2.polygonColliderInstance) << " " << &(bottomFloor.polygonColliderInstance) << std::endl;
-        // std::vector<polygonCollider*> b = grid.getNearby(&(rect.polygonColliderInstance));
+        // std::cout << &(rect.collider) << " " << &(rect2.collider) << " " << &(bottomFloor.collider) << std::endl;
+        // std::vector<polygonCollider*> b = grid.getNearby(&(rect.collider));
         // for(auto i = b.begin(); i != b.end(); i++)
         // {
         //     std::cout << (*(*i)).id << std::endl;

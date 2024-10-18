@@ -163,18 +163,18 @@ int main() {
     bottomFloor.polygonInstance.initRectangle();
     rect2.polygonInstance.initRectangle();
 
-    rect2.polygonColliderInstance.initRectangle();
-    rect.polygonColliderInstance.initRectangle();
-    bottomFloor.polygonColliderInstance.initRectangle();
+    rect2.collider.initRectangle();
+    rect.collider.initRectangle();
+    bottomFloor.collider.initRectangle();
 
-    rect.polygonColliderInstance.setCollisionCallback(collisionCallback);
-    rect2.polygonColliderInstance.setCollisionCallback(collisionCallback);
-    bottomFloor.polygonColliderInstance.setCollisionCallback(collisionCallback);
+    rect.collider.setCollisionCallback(collisionCallback);
+    rect2.collider.setCollisionCallback(collisionCallback);
+    bottomFloor.collider.setCollisionCallback(collisionCallback);
 
-    bottomFloor.polygonRigidbodyInstance.setRectangleMomentOfInertia();
-    rect.polygonRigidbodyInstance.setRectangleMomentOfInertia();
-    rect2.polygonRigidbodyInstance.setRectangleMomentOfInertia();
-    // bottomFloor.polygonColliderInstance.collide = false;
+    bottomFloor.rigidbody.setRectangleMomentOfInertia();
+    rect.rigidbody.setRectangleMomentOfInertia();
+    rect2.rigidbody.setRectangleMomentOfInertia();
+    // bottomFloor.collider.collide = false;
 
     gui::init(window);
 
@@ -188,9 +188,9 @@ int main() {
     configureShader(pointShader);
     configureShader(rayShader);
 
-    rect.polygonColliderInstance.debugShaderProgram = pointShader.ID;
-    rect2.polygonColliderInstance.debugShaderProgram = pointShader.ID;
-    bottomFloor.polygonColliderInstance.debugShaderProgram = pointShader.ID;
+    rect.collider.debugShaderProgram = pointShader.ID;
+    rect2.collider.debugShaderProgram = pointShader.ID;
+    bottomFloor.collider.debugShaderProgram = pointShader.ID;
     grid.debugShaderProgram = rayShader.ID;
     rect.polygonInstance.shaderProgram = shader.ID;
     rect2.polygonInstance.shaderProgram = shader.ID;
@@ -260,9 +260,9 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.polygonRigidbodyInstance.addForce(-700, 0);
+        rect.rigidbody.addForce(-700, 0);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rect.polygonRigidbodyInstance.addForce(700, 0);
+        rect.rigidbody.addForce(700, 0);
 }
 void updateDeltaTime()
 {
@@ -333,21 +333,21 @@ void timestep()
 void physics()
 {
     //add forces
-    rect.polygonRigidbodyInstance.gravity(50);
-    bottomFloor.polygonRigidbodyInstance.gravity(50);
+    rect.rigidbody.gravity(50);
+    bottomFloor.rigidbody.gravity(50);
 
     solver.reset();
     for(std::pair<const int, entity*> obj : entities) 
     {
-        if((*obj.second).contain[1]) (*obj.second).polygonColliderInstance.updateCollider();
+        if((*obj.second).contain[1]) (*obj.second).collider.updateCollider();
     }
     for(std::pair<unsigned int, entity*> obj : entities) 
-        if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.updateVel();
+        if((*obj.second).contain[2]) (*obj.second).rigidbody.updateVel();
     //solve collisions
     solver.updateCollisions();
     solver.resolveCollisions();
     for(std::pair<unsigned int, entity*> obj : entities) 
-        if((*obj.second).contain[2]) (*obj.second).polygonRigidbodyInstance.updatePos();
+        if((*obj.second).contain[2]) (*obj.second).rigidbody.updatePos();
     
 }
 void render(float alpha)
@@ -357,8 +357,8 @@ void render(float alpha)
         if((*obj.second).contain[0]) (*obj.second).polygonInstance.render(alpha);
         if((*obj.second).contain[1])
         {
-            if((*obj.second).polygonColliderInstance.shouldRenderBounds) 
-                (*obj.second).polygonColliderInstance.renderColliderBounds(); //FOR DEBUG REMOVE
+            if((*obj.second).collider.shouldRenderBounds) 
+                (*obj.second).collider.renderColliderBounds(); //FOR DEBUG REMOVE
         }
     }
 }

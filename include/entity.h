@@ -15,8 +15,8 @@ class entity
         //0 = polygon, 1 = polygonCollider, 2 = polygonRigidbody
         bool contain[3];
         polygon polygonInstance;
-        polygonCollider polygonColliderInstance;
-        polygonRigidbody polygonRigidbodyInstance;
+        polygonCollider collider;
+        polygonRigidbody rigidbody;
         glm::vec2 position, scale, startingPosition, startingScale;
         glm::vec2 previousPos;
         float rotation, startingRotation;   

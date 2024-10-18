@@ -108,11 +108,11 @@ void gui::polygonOptions()
         {
             if(ImGui::Button("Sync polygon/collider offsets"))
             {
-                (*(*entityList)[currentID]).polygonColliderInstance.setPositionOffset((*(*entityList)[currentID]).polygonInstance.positionOffset.x,
+                (*(*entityList)[currentID]).collider.setPositionOffset((*(*entityList)[currentID]).polygonInstance.positionOffset.x,
                                                                             (*(*entityList)[currentID]).polygonInstance.positionOffset.y);
-                (*(*entityList)[currentID]).polygonColliderInstance.setScaleOffset((*(*entityList)[currentID]).polygonInstance.scaleOffset.x,
+                (*(*entityList)[currentID]).collider.setScaleOffset((*(*entityList)[currentID]).polygonInstance.scaleOffset.x,
                                                                             (*(*entityList)[currentID]).polygonInstance.scaleOffset.y);
-                (*(*entityList)[currentID]).polygonColliderInstance.setRotationOffset((*(*entityList)[currentID]).polygonInstance.rotationOffset);
+                (*(*entityList)[currentID]).collider.setRotationOffset((*(*entityList)[currentID]).polygonInstance.rotationOffset);
             }
         }
         int layer = (*(*entityList)[currentID]).polygonInstance.layer;
@@ -131,30 +131,30 @@ void gui::polygonColliderOptions()
     
     if(ImGui::TreeNode("Polygon Collider"))
     {
-        ImGui::Text("AABB: %s", (*(*entityList)[currentID]).polygonColliderInstance.aabb ? "true" : "false");
-        float nums[2] = {(*(*entityList)[currentID]).polygonColliderInstance.positionOffset[0], 
-                        (*(*entityList)[currentID]).polygonColliderInstance.positionOffset[1]};
+        ImGui::Text("AABB: %s", (*(*entityList)[currentID]).collider.aabb ? "true" : "false");
+        float nums[2] = {(*(*entityList)[currentID]).collider.positionOffset[0], 
+                        (*(*entityList)[currentID]).collider.positionOffset[1]};
         if(ImGui::DragFloat2("Position offset", nums, 1))
-            (*(*entityList)[currentID]).polygonColliderInstance.setPositionOffset(nums[0], nums[1]);
-        nums[0] = (*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.x;
-        nums[1] = (*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.y;
+            (*(*entityList)[currentID]).collider.setPositionOffset(nums[0], nums[1]);
+        nums[0] = (*(*entityList)[currentID]).collider.scaleOffset.x;
+        nums[1] = (*(*entityList)[currentID]).collider.scaleOffset.y;
         if(ImGui::DragFloat2("Scale offset", nums, 0.25f))
-            (*(*entityList)[currentID]).polygonColliderInstance.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
-        nums[0] = glm::degrees((*(*entityList)[currentID]).polygonColliderInstance.rotationOffset);
+            (*(*entityList)[currentID]).collider.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
+        nums[0] = glm::degrees((*(*entityList)[currentID]).collider.rotationOffset);
         if(ImGui::DragFloat("Rotation offset", &nums[0], 1))
-            (*(*entityList)[currentID]).polygonColliderInstance.setRotationOffset(glm::radians(nums[0]));
+            (*(*entityList)[currentID]).collider.setRotationOffset(glm::radians(nums[0]));
         if((*(*entityList)[currentID]).contain[0])
         {
             if(ImGui::Button("Sync collider/polygon offsets"))
             {
-                (*(*entityList)[currentID]).polygonInstance.setPositionOffset((*(*entityList)[currentID]).polygonColliderInstance.positionOffset.x,
-                                                                            (*(*entityList)[currentID]).polygonColliderInstance.positionOffset.y);
-                (*(*entityList)[currentID]).polygonInstance.setScaleOffset((*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.x,
-                                                                            (*(*entityList)[currentID]).polygonColliderInstance.scaleOffset.y);
-                (*(*entityList)[currentID]).polygonInstance.setRotationOffset((*(*entityList)[currentID]).polygonColliderInstance.rotationOffset);
+                (*(*entityList)[currentID]).polygonInstance.setPositionOffset((*(*entityList)[currentID]).collider.positionOffset.x,
+                                                                            (*(*entityList)[currentID]).collider.positionOffset.y);
+                (*(*entityList)[currentID]).polygonInstance.setScaleOffset((*(*entityList)[currentID]).collider.scaleOffset.x,
+                                                                            (*(*entityList)[currentID]).collider.scaleOffset.y);
+                (*(*entityList)[currentID]).polygonInstance.setRotationOffset((*(*entityList)[currentID]).collider.rotationOffset);
             }
         }
-        ImGui::Checkbox("Render bounds", &(*(*entityList)[currentID]).polygonColliderInstance.shouldRenderBounds);
+        ImGui::Checkbox("Render bounds", &(*(*entityList)[currentID]).collider.shouldRenderBounds);
         ImGui::TreePop();
     }
 }
@@ -221,13 +221,13 @@ std::string gui::getEntityData(int i, bool saved)
         output += " x x x";
     else
         if(saved)
-            output += " pco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.positionOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.positionOffset.y) + 
-                    " sco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.scaleOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.scaleOffset.y) + 
-                    " rco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.rotationOffset);
+            output += " pco" + std::to_string((*(*entityList)[i]).collider.positionOffset.x) + "," + std::to_string((*(*entityList)[i]).collider.positionOffset.y) + 
+                    " sco" + std::to_string((*(*entityList)[i]).collider.scaleOffset.x) + "," + std::to_string((*(*entityList)[i]).collider.scaleOffset.y) + 
+                    " rco" + std::to_string((*(*entityList)[i]).collider.rotationOffset);
         else
-            output += " pco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.startPositionOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.startPositionOffset.y) + 
-                " sco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.startScaleOffset.x) + "," + std::to_string((*(*entityList)[i]).polygonColliderInstance.startScaleOffset.y) + 
-                " rco" + std::to_string((*(*entityList)[i]).polygonColliderInstance.startRotationOffset);
+            output += " pco" + std::to_string((*(*entityList)[i]).collider.startPositionOffset.x) + "," + std::to_string((*(*entityList)[i]).collider.startPositionOffset.y) + 
+                " sco" + std::to_string((*(*entityList)[i]).collider.startScaleOffset.x) + "," + std::to_string((*(*entityList)[i]).collider.startScaleOffset.y) + 
+                " rco" + std::to_string((*(*entityList)[i]).collider.startRotationOffset);
 
     output += "\n";
     return output;

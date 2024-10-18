@@ -47,7 +47,7 @@ void polygonRigidbody::setRectangleMomentOfInertia()
         invMomentOfInertia = 0;
         return;
     }
-    glm::vec2 scale = (*base).scale * (*base).polygonColliderInstance.scaleOffset;
+    glm::vec2 scale = (*base).scale * (*base).collider.scaleOffset;
     momentOfInertia = mass * (scale.x * scale.x + scale.y * scale.y) / 12.0f;
     invMomentOfInertia = 1.0f / momentOfInertia;
 }
@@ -62,7 +62,7 @@ void polygonRigidbody::addImpulse(float x, float y)
 }
 void polygonRigidbody::addTorque(float forceX, float forceY, float xPos, float yPos)
 {
-    glm::vec2 dist = glm::vec2(xPos , yPos) - (*base).polygonColliderInstance.centroid;
+    glm::vec2 dist = glm::vec2(xPos , yPos) - (*base).collider.centroid;
     glm::vec2 torqueForce = glm::vec2(forceX, forceY);
     torque += dist.x * torqueForce.y - dist.y * torqueForce.x;
 }
@@ -72,7 +72,7 @@ void polygonRigidbody::addTorque(float amt)
 }
 void polygonRigidbody::addAngularImpulse(float impulseX, float impulseY, float xPos, float yPos)
 {
-    glm::vec2 dist = glm::vec2(xPos , yPos) - (*base).polygonColliderInstance.centroid;
+    glm::vec2 dist = glm::vec2(xPos , yPos) - (*base).collider.centroid;
     glm::vec2 impulse = glm::vec2(impulseX, impulseY);
     angularImpulse += mathFuncs::cross(dist, impulse);
     // angularVelocity += mathFuncs::cross(dist, impulse) * invMomentOfInertia;

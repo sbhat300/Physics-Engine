@@ -45,7 +45,8 @@ void collisionSolver::reset()
     collisions.clear();
     collisionManifolds.clear();
 }
-void collisionSolver::registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2)
+void collisionSolver::registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, 
+                                        float penDepth, glm::vec2 point1, glm::vec2 point2)
 {
     collisionInfo newCollision;
     if(first < second)
@@ -80,12 +81,12 @@ void collisionSolver::setupManifolds()
         manifold.cp[1] = collision.cp2;
         manifold.tot[0] = 0;
         manifold.tot[1] = 0;
-        manifold.aDist[0] = collision.cp1 - (*entities)[collision.firstID]->polygonColliderInstance.centroid;
-        manifold.bDist[0] = collision.cp1 - (*entities)[collision.secondID]->polygonColliderInstance.centroid;
+        manifold.aDist[0] = collision.cp1 - (*entities)[collision.firstID]->collider.centroid;
+        manifold.bDist[0] = collision.cp1 - (*entities)[collision.secondID]->collider.centroid;
         if(collision.numContacts == 2)
         {
-            manifold.aDist[1] = collision.cp2 - (*entities)[collision.firstID]->polygonColliderInstance.centroid;
-            manifold.bDist[1] = collision.cp2 - (*entities)[collision.secondID]->polygonColliderInstance.centroid;
+            manifold.aDist[1] = collision.cp2 - (*entities)[collision.firstID]->collider.centroid;
+            manifold.bDist[1] = collision.cp2 - (*entities)[collision.secondID]->collider.centroid;
         }
         manifold.j_wa[0] = -mathFuncs::cross(manifold.aDist[0], collision.collisionNormal);
         manifold.j_wb[0] = mathFuncs::cross(manifold.bDist[0], collision.collisionNormal);
@@ -94,16 +95,16 @@ void collisionSolver::setupManifolds()
             manifold.j_wa[1] = -mathFuncs::cross(manifold.aDist[1], collision.collisionNormal);
             manifold.j_wb[1] = mathFuncs::cross(manifold.bDist[1], collision.collisionNormal);
         }
-        manifold.effectiveMass[0] = 1.0f / ((*entities)[collision.firstID]->polygonRigidbodyInstance.invMass + 
-                        (*entities)[collision.secondID]->polygonRigidbodyInstance.invMass + 
-                        manifold.j_wa[0] * manifold.j_wa[0] * (*entities)[collision.firstID]->polygonRigidbodyInstance.invMomentOfInertia +
-                        manifold.j_wb[0] * manifold.j_wb[0] * (*entities)[collision.secondID]->polygonRigidbodyInstance.invMomentOfInertia);
+        manifold.effectiveMass[0] = 1.0f / ((*entities)[collision.firstID]->rigidbody.invMass + 
+                        (*entities)[collision.secondID]->rigidbody.invMass + 
+                        manifold.j_wa[0] * manifold.j_wa[0] * (*entities)[collision.firstID]->rigidbody.invMomentOfInertia +
+                        manifold.j_wb[0] * manifold.j_wb[0] * (*entities)[collision.secondID]->rigidbody.invMomentOfInertia);
         if(collision.numContacts == 2)
         {
-            manifold.effectiveMass[1] = 1.0f / ((*entities)[collision.firstID]->polygonRigidbodyInstance.invMass + 
-                    (*entities)[collision.secondID]->polygonRigidbodyInstance.invMass + 
-                    manifold.j_wa[1] * manifold.j_wa[1] * (*entities)[collision.firstID]->polygonRigidbodyInstance.invMomentOfInertia +
-                    manifold.j_wb[1] * manifold.j_wb[1] * (*entities)[collision.secondID]->polygonRigidbodyInstance.invMomentOfInertia);
+            manifold.effectiveMass[1] = 1.0f / ((*entities)[collision.firstID]->rigidbody.invMass + 
+                    (*entities)[collision.secondID]->rigidbody.invMass + 
+                    manifold.j_wa[1] * manifold.j_wa[1] * (*entities)[collision.firstID]->rigidbody.invMomentOfInertia +
+                    manifold.j_wb[1] * manifold.j_wb[1] * (*entities)[collision.secondID]->rigidbody.invMomentOfInertia);
         }
         collisionManifolds.push_back(manifold);
     }
@@ -125,17 +126,17 @@ void collisionSolver::resolveCollisions()
                 glm::vec2 j_vb = collision.collisionNormal;
                 float j_wb = collision.j_wb[i];
                         
-                float jv = glm::dot(j_va, (*entities)[collision.firstID]->polygonRigidbodyInstance.velocity) + 
-                        j_wa * (*entities)[collision.firstID]->polygonRigidbodyInstance.angularVelocity + 
-                        glm::dot(j_vb, (*entities)[collision.secondID]->polygonRigidbodyInstance.velocity) +
-                        j_wb * (*entities)[collision.secondID]->polygonRigidbodyInstance.angularVelocity;
+                float jv = glm::dot(j_va, (*entities)[collision.firstID]->rigidbody.velocity) + 
+                        j_wa * (*entities)[collision.firstID]->rigidbody.angularVelocity + 
+                        glm::dot(j_vb, (*entities)[collision.secondID]->rigidbody.velocity) +
+                        j_wb * (*entities)[collision.secondID]->rigidbody.angularVelocity;
 
-                float restitution = (*(*entities)[collision.firstID]).polygonRigidbodyInstance.restitution * 
-                                    (*(*entities)[collision.secondID]).polygonRigidbodyInstance.restitution;
-                glm::vec2 relativeVel = -(*entities)[collision.firstID]->polygonRigidbodyInstance.velocity +
-                                    -mathFuncs::cross((*entities)[collision.firstID]->polygonRigidbodyInstance.angularVelocity, collision.aDist[i]) + 
-                                    (*entities)[collision.secondID]->polygonRigidbodyInstance.velocity +
-                                    mathFuncs::cross((*entities)[collision.secondID]->polygonRigidbodyInstance.angularVelocity, collision.aDist[i]);
+                float restitution = (*(*entities)[collision.firstID]).rigidbody.restitution * 
+                                    (*(*entities)[collision.secondID]).rigidbody.restitution;
+                glm::vec2 relativeVel = -(*entities)[collision.firstID]->rigidbody.velocity +
+                                    -mathFuncs::cross((*entities)[collision.firstID]->rigidbody.angularVelocity, collision.aDist[i]) + 
+                                    (*entities)[collision.secondID]->rigidbody.velocity +
+                                    mathFuncs::cross((*entities)[collision.secondID]->rigidbody.angularVelocity, collision.aDist[i]);
                 float velAlongNormal = glm::dot(relativeVel, collision.collisionNormal);
 
                 float b = -(bias / setup::fixedDeltaTime) * std::max(collision.penetrationDepth - slop, 0.0f) + restitution * velAlongNormal;
@@ -150,26 +151,26 @@ void collisionSolver::resolveCollisions()
 
                 largestImpulse = std::max(lambda, largestImpulse);
 
-                (*entities)[collision.firstID]->polygonRigidbodyInstance.velocity += j_va * lambda * 
-                                                                (*entities)[collision.firstID]->polygonRigidbodyInstance.invMass;
-                (*entities)[collision.firstID]->polygonRigidbodyInstance.angularVelocity += j_wa * lambda *
-                                                                (*entities)[collision.firstID]->polygonRigidbodyInstance.invMomentOfInertia;
-                (*entities)[collision.secondID]->polygonRigidbodyInstance.velocity += j_vb * lambda * 
-                                                                (*entities)[collision.secondID]->polygonRigidbodyInstance.invMass;
-                (*entities)[collision.secondID]->polygonRigidbodyInstance.angularVelocity += j_wb * lambda *
-                                                                (*entities)[collision.secondID]->polygonRigidbodyInstance.invMomentOfInertia;
+                (*entities)[collision.firstID]->rigidbody.velocity += j_va * lambda * 
+                                                                (*entities)[collision.firstID]->rigidbody.invMass;
+                (*entities)[collision.firstID]->rigidbody.angularVelocity += j_wa * lambda *
+                                                                (*entities)[collision.firstID]->rigidbody.invMomentOfInertia;
+                (*entities)[collision.secondID]->rigidbody.velocity += j_vb * lambda * 
+                                                                (*entities)[collision.secondID]->rigidbody.invMass;
+                (*entities)[collision.secondID]->rigidbody.angularVelocity += j_wb * lambda *
+                                                                (*entities)[collision.secondID]->rigidbody.invMomentOfInertia;
 
             }
             for(collisionManifold collision : collisionManifolds)
             {
                 for(int i = 0; i < collision.numContacts; i++)
                 {
-                    glm::vec2 first = collision.cp[i] - (*entities)[collision.firstID]->polygonColliderInstance.centroid;
-                    glm::vec2 second = collision.cp[i] - (*entities)[collision.secondID]->polygonColliderInstance.centroid;
-                    glm::vec2 relativeVel = -(*entities)[collision.firstID]->polygonRigidbodyInstance.velocity +
-                                        -mathFuncs::cross((*entities)[collision.firstID]->polygonRigidbodyInstance.angularVelocity, first) + 
-                                        (*entities)[collision.secondID]->polygonRigidbodyInstance.velocity +
-                                        mathFuncs::cross((*entities)[collision.secondID]->polygonRigidbodyInstance.angularVelocity, second);
+                    glm::vec2 first = collision.cp[i] - (*entities)[collision.firstID]->collider.centroid;
+                    glm::vec2 second = collision.cp[i] - (*entities)[collision.secondID]->collider.centroid;
+                    glm::vec2 relativeVel = -(*entities)[collision.firstID]->rigidbody.velocity +
+                                        -mathFuncs::cross((*entities)[collision.firstID]->rigidbody.angularVelocity, first) + 
+                                        (*entities)[collision.secondID]->rigidbody.velocity +
+                                        mathFuncs::cross((*entities)[collision.secondID]->rigidbody.angularVelocity, second);
                     if(relativeVel.x * relativeVel.x + relativeVel.y * relativeVel.y <= minRelVel2) continue;
                     glm::vec2 tangent = -relativeVel - (glm::dot(relativeVel, collision.collisionNormal) * collision.collisionNormal);
                     tangent = glm::normalize(tangent);
