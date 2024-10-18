@@ -18,7 +18,6 @@ polygonRigidbody::polygonRigidbody(float m, float moi, float r, float uk, float 
     angularVelocity = 0;
     torque = 0;
     angularImpulse = 0;
-    if(mass == 0) restitution = 0;
     muk = uk;
     mus = us;
 }

@@ -63,7 +63,7 @@ sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
 entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
-entity rect("player", glm::vec2(140, 50), glm::vec2(40.000000, 40.000000), glm::radians(180.0f), &entities, &counter, &shared);
+entity rect("player", glm::vec2(140, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
@@ -148,8 +148,8 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     /*-----END-----*/
 

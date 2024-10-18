@@ -160,20 +160,23 @@ void collisionSolver::resolveCollisions()
                                                                 (*entities)[collision.secondID]->polygonRigidbodyInstance.invMomentOfInertia;
 
             }
-
-            glm::vec2 point = collision.cp[0];
-            if(collision.numContacts == 2) point = (collision.cp[0] + collision.cp[1]) / 2.0f;
-            glm::vec2 first = point - (*entities)[collision.firstID]->polygonColliderInstance.centroid;
-            glm::vec2 second = point - (*entities)[collision.secondID]->polygonColliderInstance.centroid;
-            glm::vec2 relativeVel = -(*entities)[collision.firstID]->polygonRigidbodyInstance.velocity +
-                                -mathFuncs::cross((*entities)[collision.firstID]->polygonRigidbodyInstance.angularVelocity, first) + 
-                                (*entities)[collision.secondID]->polygonRigidbodyInstance.velocity +
-                                mathFuncs::cross((*entities)[collision.secondID]->polygonRigidbodyInstance.angularVelocity, second);
-            if(relativeVel.x * relativeVel.x + relativeVel.y * relativeVel.y <= minRelVel2) continue;
-            glm::vec2 tangent = -relativeVel - (glm::dot(relativeVel, collision.collisionNormal) * collision.collisionNormal);
-            tangent = glm::normalize(tangent);
-            
-            if(collision.firstID == 1) std::cout << tangent.x << " " << tangent.y << std::endl;
+            for(collisionManifold collision : collisionManifolds)
+            {
+                for(int i = 0; i < collision.numContacts; i++)
+                {
+                    glm::vec2 first = collision.cp[i] - (*entities)[collision.firstID]->polygonColliderInstance.centroid;
+                    glm::vec2 second = collision.cp[i] - (*entities)[collision.secondID]->polygonColliderInstance.centroid;
+                    glm::vec2 relativeVel = -(*entities)[collision.firstID]->polygonRigidbodyInstance.velocity +
+                                        -mathFuncs::cross((*entities)[collision.firstID]->polygonRigidbodyInstance.angularVelocity, first) + 
+                                        (*entities)[collision.secondID]->polygonRigidbodyInstance.velocity +
+                                        mathFuncs::cross((*entities)[collision.secondID]->polygonRigidbodyInstance.angularVelocity, second);
+                    if(relativeVel.x * relativeVel.x + relativeVel.y * relativeVel.y <= minRelVel2) continue;
+                    glm::vec2 tangent = -relativeVel - (glm::dot(relativeVel, collision.collisionNormal) * collision.collisionNormal);
+                    tangent = glm::normalize(tangent);
+                    
+                    if(collision.firstID == 1) std::cout << tangent.x << " " << tangent.y << std::endl;
+                }
+            }
 
         }
     } while(std::abs(largestImpulse) > std::abs(smallestImpulse));

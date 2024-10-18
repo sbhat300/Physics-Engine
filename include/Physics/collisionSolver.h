@@ -23,6 +23,7 @@ struct collisionManifold
     int numContacts;
     float penetrationDepth;
     glm::vec2 collisionNormal;
+    glm::vec2 collisionTangent[2];
     glm::vec2 cp[2];
     float tot[2];
     float effectiveMass[2];
