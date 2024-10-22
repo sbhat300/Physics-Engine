@@ -31,6 +31,11 @@ void gui::preLoop()
         ImGui::Text("FPS %f", fps);
         ImGui::Checkbox("Save all", &saveAll);
         if(currentID != -1) ImGui::Checkbox("Save edits", &(*(*entityList)[currentID]).guiSave);
+        ImGui::Checkbox("Paused", &paused);
+        if(ImGui::Button("Step") && paused)
+        {
+            debugStep();
+        }
         entityOptions();
         if(currentID != -1 && (*(*entityList)[currentID]).contain[0]) polygonOptions();
         if(currentID != -1 && (*(*entityList)[currentID]).contain[1]) polygonColliderOptions();

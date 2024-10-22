@@ -28,6 +28,7 @@
 #include "config.h"
 #include <Physics/collisionSolver.h>
 #include <mathFuncs.h>
+#include <functional>
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -42,7 +43,7 @@ void bufferMatrices(int ubo);
 void timestep();
 void physics();
 void render(float alpha);
-
+void debugRender();
 
 float windowHeight = 600, windowWidth = 1200;
 int setup::maxLayers = 10;
@@ -54,6 +55,7 @@ float setup::angularDamping = 0.997f;
 float accumulator = 0;
 unsigned int counter = 0;
 
+
 int DataLoader::previousDataPos = -1;
 const char* DataLoader::name = "D:\\PhysicsEngine\\src\\collisionsObjectData.txt";
 
@@ -63,7 +65,7 @@ sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
 entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
-entity rect("player", glm::vec2(140, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
+entity rect("player", glm::vec2(-79, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
@@ -80,8 +82,12 @@ std::unordered_map<unsigned int, entity*>* gui::entityList = &entities;
 int gui::currentID = -1;
 bool gui::editMode = false;
 bool gui::saveAll = false;
+bool gui::paused = false;
 int gui::maxEntityCount = counter - 1;
 float gui::fps = 0;
+
+std::function<void()> gui::debugStep = debugRender;
+
 spatialHashGrid* gui::spatialHash = &grid; 
 
 std::string fileLoader::rootPath = ROOT_DIR;
@@ -132,8 +138,8 @@ int main() {
     solver.entities = &entities;
     solver.bias = 0.07f;
     solver.slop = 0.01f;
-    solver.smallestImpulse = 0.01f;
-    solver.minRelVel2 = 0.1;
+    solver.smallestImpulse = 0.1f;
+    solver.positionIter = 3;
 
     /*-----POLYGON INITIALIZATION-----*/
 	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
@@ -148,9 +154,9 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    rect.addPolygonRigidbody(15.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.5f, 0.7f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.5f, 0.7f);
+    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.5f, 0.7f);
     /*-----END-----*/
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -259,10 +265,13 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.rigidbody.addForce(-700, 0);
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rect.rigidbody.addForce(700, 0);
+    if(!gui::paused)
+    {
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            rect.rigidbody.addForce(-7000, 0);
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            rect.rigidbody.addForce(7000, 0);
+    }
 }
 void updateDeltaTime()
 {
@@ -294,14 +303,14 @@ void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collis
     if(contactPoints == 1)
     {
         rDebugPoint.setPosition(cp1.x, cp1.y);
-        rDebugPoint.render();
+        // rDebugPoint.render();
     }
     if(contactPoints == 2)
     {
         rDebugPoint.setPosition(cp1.x, cp1.y);
-        rDebugPoint.render();
+        // rDebugPoint.render();
         rDebugPoint.setPosition(cp2.x, cp2.y);
-        rDebugPoint.render();
+        // rDebugPoint.render();
     }
     solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
 }
@@ -319,6 +328,25 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 void timestep()
+{
+    if(!gui::paused)
+    {
+        accumulator += deltaTime > 0.2f ? 0.2f : deltaTime;
+        if(accumulator > 0.2f) accumulator = 0.2f;
+        while(accumulator >= setup::fixedDeltaTime)
+        {
+            physics();
+            accumulator -= setup::fixedDeltaTime;
+        }
+        float alpha = accumulator / setup::fixedDeltaTime;
+        render(alpha);
+    }
+    else
+    {
+        render(0);
+    }
+}
+void debugRender()
 {
     accumulator += deltaTime > 0.2f ? 0.2f : deltaTime;
     if(accumulator > 0.2f) accumulator = 0.2f;

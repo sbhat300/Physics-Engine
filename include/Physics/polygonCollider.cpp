@@ -222,6 +222,7 @@ void polygonCollider::checkCollisions()
             glm::vec2 normal = v1 - v2;
             normal = glm::normalize(glm::vec2(-normal.y, normal.x));
             normal = glm::vec2(std::round(normal.x * 10000.0f) / 10000.0f, std::round(normal.y * 10000.0f) / 10000.0f);            if(currentAxes.find(std::pair<float, float>(normal.x, normal.y)) == currentAxes.end())
+            if(currentAxes.find(std::pair<float, float>(normal.x, normal.y)) == currentAxes.end())
             {
                 axes.push_back(normal);
                 currentAxes.insert(std::pair<float, float>(-normal.x, -normal.y));

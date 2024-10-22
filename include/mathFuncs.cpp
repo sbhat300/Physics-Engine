@@ -12,3 +12,7 @@ glm::vec2 mathFuncs::cross(float first, glm::vec2 second)
 {
     return glm::vec2(-first * second.y, first * second.x);
 }
+float mathFuncs::clamp(float low, float high, float val)
+{
+    return std::min(high, std::max(low, val));
+}
