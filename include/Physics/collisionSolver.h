@@ -26,12 +26,8 @@ struct collisionManifold
     glm::vec2 collisionTangent[2];
     glm::vec2 cp[2];
     float tot[2];
-    float totTangent[2];
-    float normalLambdas[2];
     float effectiveMass[2];
-    float effectiveTangentMass[2];
     float j_wa[2], j_wb[2];
-    float j_wat[2], j_wbt[2];
     glm::vec2 aDist[2], bDist[2];
     glm::vec2 relativeVel[2];
 };
@@ -57,7 +53,6 @@ class collisionSolver
         float slop;
         float smallestImpulse;
         int positionIter;
-        int iterations;
         collisionSolver();
         collisionSolver(unsigned int* c);
         void reset();
@@ -66,7 +61,7 @@ class collisionSolver
         void resolveCollisions();
         void setupManifolds();
         void warmStart();
-        void blockSolve(collisionManifold* collision, float* out, bool tangent);
+        void blockSolve(collisionManifold* collision, float* out);
         float singularSolve(collisionManifold* collision, int p);
     private:
         static bool compareCollision(collisionInfo lhs, collisionInfo rhs);

@@ -64,7 +64,7 @@ std::unordered_map<unsigned int, entity*> entities;
 sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(20.000000), &entities, &counter, &shared);
+entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
 entity rect("player", glm::vec2(-79, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
@@ -136,11 +136,10 @@ int main() {
     shared.initVAOs();
 
     solver.entities = &entities;
-    solver.bias = 0.03f;
-    solver.slop = 0.1f;
+    solver.bias = 0.07f;
+    solver.slop = 0.01f;
     solver.smallestImpulse = 0.1f;
     solver.positionIter = 3;
-    solver.iterations = 8;
 
     /*-----POLYGON INITIALIZATION-----*/
 	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
@@ -155,9 +154,9 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.7f, 0.7f);
-    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.7f, 0.7f);
-    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.7f, 0.7f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.5f, 0.7f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.5f, 0.7f);
+    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.5f, 0.7f);
     /*-----END-----*/
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -216,6 +215,7 @@ int main() {
     setCamSettings();
 
     float fpsTimer = 0;
+    
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -237,7 +237,7 @@ int main() {
 
         timestep();
 
-        // grid.drawGrid();
+        grid.drawGrid();
 
         gui::postLoop();
         glfwSwapBuffers(window);
