@@ -81,43 +81,64 @@ void collisionSolver::setupManifolds()
         manifold.cp[1] = collision.cp2;
         manifold.tot[0] = 0;
         manifold.tot[1] = 0;
+        manifold.totTangent[0] = 0;
+        manifold.totTangent[1] = 0;
+        manifold.normalLambdas[0] = 0;
+        manifold.normalLambdas[1] = 0;
+
         manifold.aDist[0] = collision.cp1 - (*entities)[collision.firstID]->collider.centroid;
         manifold.bDist[0] = collision.cp1 - (*entities)[collision.secondID]->collider.centroid;
-        if(collision.numContacts == 2)
-        {
-            manifold.aDist[1] = collision.cp2 - (*entities)[collision.firstID]->collider.centroid;
-            manifold.bDist[1] = collision.cp2 - (*entities)[collision.secondID]->collider.centroid;
-        }
         manifold.j_wa[0] = -mathFuncs::cross(manifold.aDist[0], collision.collisionNormal);
         manifold.j_wb[0] = mathFuncs::cross(manifold.bDist[0], collision.collisionNormal);
-        if(collision.numContacts == 2)
-        {
-            manifold.j_wa[1] = -mathFuncs::cross(manifold.aDist[1], collision.collisionNormal);
-            manifold.j_wb[1] = mathFuncs::cross(manifold.bDist[1], collision.collisionNormal);
-        }
         manifold.effectiveMass[0] = (*entities)[collision.firstID]->rigidbody.invMass + 
                         (*entities)[collision.secondID]->rigidbody.invMass + 
                         manifold.j_wa[0] * manifold.j_wa[0] * (*entities)[collision.firstID]->rigidbody.invMomentOfInertia +
                         manifold.j_wb[0] * manifold.j_wb[0] * (*entities)[collision.secondID]->rigidbody.invMomentOfInertia;
+
+        manifold.relativeVel[0] = -(*entities)[collision.firstID]->rigidbody.velocity +
+                                    -mathFuncs::cross((*entities)[collision.firstID]->rigidbody.angularVelocity, manifold.aDist[0]) + 
+                                    (*entities)[collision.secondID]->rigidbody.velocity +
+                                    mathFuncs::cross((*entities)[collision.secondID]->rigidbody.angularVelocity, manifold.bDist[0]);   
+
+        glm::vec2 tangent = -manifold.relativeVel[0] - (glm::dot(manifold.relativeVel[0], manifold.collisionNormal) * manifold.collisionNormal);
+        if(tangent.x * tangent.x + tangent.y * tangent.y != 0)
+        {
+            manifold.collisionTangent[0] = glm::normalize(tangent);
+        }
+        manifold.j_wat[0] = mathFuncs::cross(-manifold.aDist[0], manifold.collisionTangent[0]);
+        manifold.j_wbt[0] = mathFuncs::cross(manifold.bDist[0], manifold.collisionTangent[0]);
+        manifold.effectiveTangentMass[0] = (*entities)[collision.firstID]->rigidbody.invMass + 
+                        (*entities)[collision.secondID]->rigidbody.invMass + 
+                        manifold.j_wat[0] * manifold.j_wat[0] * (*entities)[collision.firstID]->rigidbody.invMomentOfInertia +
+                        manifold.j_wbt[0] * manifold.j_wbt[0] * (*entities)[collision.secondID]->rigidbody.invMomentOfInertia;
+        
         if(collision.numContacts == 2)
         {
+            manifold.aDist[1] = collision.cp2 - (*entities)[collision.firstID]->collider.centroid;
+            manifold.bDist[1] = collision.cp2 - (*entities)[collision.secondID]->collider.centroid;
+            manifold.j_wa[1] = -mathFuncs::cross(manifold.aDist[1], collision.collisionNormal);
+            manifold.j_wb[1] = mathFuncs::cross(manifold.bDist[1], collision.collisionNormal);
             manifold.effectiveMass[1] = (*entities)[collision.firstID]->rigidbody.invMass + 
                     (*entities)[collision.secondID]->rigidbody.invMass + 
                     manifold.j_wa[1] * manifold.j_wa[1] * (*entities)[collision.firstID]->rigidbody.invMomentOfInertia +
                     manifold.j_wb[1] * manifold.j_wb[1] * (*entities)[collision.secondID]->rigidbody.invMomentOfInertia;
-        }
-        manifold.relativeVel[0] = -(*entities)[collision.firstID]->rigidbody.velocity +
-                                    -mathFuncs::cross((*entities)[collision.firstID]->rigidbody.angularVelocity, manifold.aDist[0]) + 
-                                    (*entities)[collision.secondID]->rigidbody.velocity +
-                                    mathFuncs::cross((*entities)[collision.secondID]->rigidbody.angularVelocity, manifold.bDist[0]);
-        if(collision.numContacts == 2)
-        {
             manifold.relativeVel[1] = -(*entities)[collision.firstID]->rigidbody.velocity +
                             -mathFuncs::cross((*entities)[collision.firstID]->rigidbody.angularVelocity, manifold.aDist[1]) + 
                             (*entities)[collision.secondID]->rigidbody.velocity +
                             mathFuncs::cross((*entities)[collision.secondID]->rigidbody.angularVelocity, manifold.bDist[1]);
-        }   
-        
+            
+            tangent = -manifold.relativeVel[1] - (glm::dot(manifold.relativeVel[1], manifold.collisionNormal) * manifold.collisionNormal);
+            if(tangent.x * tangent.x + tangent.y * tangent.y != 0)
+            {
+                manifold.collisionTangent[1] = glm::normalize(tangent);
+            }
+            manifold.j_wat[1] = mathFuncs::cross(-manifold.aDist[1], manifold.collisionTangent[1]);
+            manifold.j_wbt[1] = mathFuncs::cross(manifold.bDist[1], manifold.collisionTangent[1]);
+            manifold.effectiveTangentMass[1] = (*entities)[collision.firstID]->rigidbody.invMass + 
+                        (*entities)[collision.secondID]->rigidbody.invMass + 
+                        manifold.j_wat[1] * manifold.j_wat[1] * (*entities)[collision.firstID]->rigidbody.invMomentOfInertia +
+                        manifold.j_wbt[1] * manifold.j_wbt[1] * (*entities)[collision.secondID]->rigidbody.invMomentOfInertia;
+        }
         collisionManifolds.push_back(manifold);
     }
 }
@@ -167,7 +188,7 @@ void collisionSolver::warmStart()
         }
     }
 }
-void collisionSolver::blockSolve(collisionManifold* collision, float* out)
+void collisionSolver::blockSolve(collisionManifold* collision, float* out, bool tangent)
 {
     float jv[2];
     glm::vec2 j_va1 = -collision->collisionNormal;
@@ -220,29 +241,28 @@ float collisionSolver::singularSolve(collisionManifold* collision, int p)
 }
 void collisionSolver::resolveCollisions()
 {
-    float largestImpulse = 0;
     setupManifolds();
     // warmStart();
-    do
+    int counter = 0;
+    for(int i = 0; i < iterations; i++) 
     {
-        largestImpulse = 0;
         for(int pos = 0; pos < collisionManifolds.size(); pos++)
         {
             collisionManifold* collision = &collisionManifolds[pos];
-            float lambdas[2] = {collision->tot[0], collision->tot[1]};
+
+            float out[2];
             if(collision->numContacts == 2)
             {
-                float out[2];
-                blockSolve(collision, out);
+                
+                blockSolve(collision, out, false);
                 float lambda;
                 if(out[0] >= 0 && out[1] >= 0)
                 {
                     for(int i = 0; i < 2; i++)
                     {
                         collision->tot[i] = collision->tot[i] + out[i];
-                        lambdas[i] = out[i];
+                        collision->normalLambdas[i] = out[i];
                     }
-                    largestImpulse = std::max(out[1], std::max(out[0], largestImpulse));
 
                     (*entities)[collision->firstID]->rigidbody.velocity += -collision->collisionNormal * (out[0] + out[1]) * 
                                                                 (*entities)[collision->firstID]->rigidbody.invMass;
@@ -259,9 +279,8 @@ void collisionSolver::resolveCollisions()
                     if(lambda >= 0)
                     {
                         collision->tot[0] = collision->tot[0] + lambda;
-                        lambdas[0] = lambda;
-                        lambdas[1] = 0;
-                        largestImpulse = std::max(lambda, largestImpulse);
+                        collision->normalLambdas[0] = lambda;
+                        collision->normalLambdas[1] = 0;
 
                         (*entities)[collision->firstID]->rigidbody.velocity += -collision->collisionNormal * lambda * 
                                                                         (*entities)[collision->firstID]->rigidbody.invMass;
@@ -278,9 +297,8 @@ void collisionSolver::resolveCollisions()
                         if(lambda >= 0)
                         {
                             collision->tot[1] = collision->tot[1] + lambda;
-                            lambdas[1] = lambda;
-                            lambdas[0] = 0;
-                            largestImpulse = std::max(lambda, largestImpulse);
+                            collision->normalLambdas[1] = lambda;
+                            collision->normalLambdas[0] = 0;
 
                             (*entities)[collision->firstID]->rigidbody.velocity += -collision->collisionNormal * lambda * 
                                                                             (*entities)[collision->firstID]->rigidbody.invMass;
@@ -289,6 +307,25 @@ void collisionSolver::resolveCollisions()
                             (*entities)[collision->secondID]->rigidbody.velocity += collision->collisionNormal * lambda * 
                                                                             (*entities)[collision->secondID]->rigidbody.invMass;
                             (*entities)[collision->secondID]->rigidbody.angularVelocity += collision->j_wb[1] * lambda *
+                                                                            (*entities)[collision->secondID]->rigidbody.invMomentOfInertia;
+                        }
+                        else
+                        {
+                            for(int i = 0; i < 2; i++)
+                            {
+                                float oldTot = collision->tot[i];
+                                collision->tot[i] = std::max(0.0f, collision->tot[i] + out[i]);
+                                out[i] = collision->tot[i] - oldTot;
+                                collision->normalLambdas[i] = out[i];
+                            }
+
+                            (*entities)[collision->firstID]->rigidbody.velocity += -collision->collisionNormal * (out[0] + out[1]) * 
+                                                                        (*entities)[collision->firstID]->rigidbody.invMass;
+                            (*entities)[collision->firstID]->rigidbody.angularVelocity += (collision->j_wa[0] * out[0] + collision->j_wa[1] * out[1]) *
+                                                                            (*entities)[collision->firstID]->rigidbody.invMomentOfInertia;
+                            (*entities)[collision->secondID]->rigidbody.velocity += collision->collisionNormal * (out[0] + out[1]) * 
+                                                                            (*entities)[collision->secondID]->rigidbody.invMass;
+                            (*entities)[collision->secondID]->rigidbody.angularVelocity += (collision->j_wb[0] * out[0] + collision->j_wb[1] * out[1]) *
                                                                             (*entities)[collision->secondID]->rigidbody.invMomentOfInertia;
                         }
                     }
@@ -301,8 +338,8 @@ void collisionSolver::resolveCollisions()
                 float oldTot = collision->tot[0];
                 collision->tot[0] = std::max(0.0f, collision->tot[0] + lambda);
                 lambda = collision->tot[0] - oldTot;
-                lambdas[0] = lambda;
-                largestImpulse = std::max(lambda, largestImpulse);
+                collision->normalLambdas[0] = lambda;
+                
 
                 (*entities)[collision->firstID]->rigidbody.velocity += -collision->collisionNormal * lambda * 
                                                                 (*entities)[collision->firstID]->rigidbody.invMass;
@@ -313,44 +350,41 @@ void collisionSolver::resolveCollisions()
                 (*entities)[collision->secondID]->rigidbody.angularVelocity += collision->j_wb[0] * lambda *
                                                                 (*entities)[collision->secondID]->rigidbody.invMomentOfInertia;
             }
-            for(int i = 0; i < collision->numContacts; i++)
-            {
-                glm::vec2 relativeVel = -(*entities)[collision->firstID]->rigidbody.velocity +
-                                -mathFuncs::cross((*entities)[collision->firstID]->rigidbody.angularVelocity, collision->aDist[0]) + 
-                                (*entities)[collision->secondID]->rigidbody.velocity +
-                                mathFuncs::cross((*entities)[collision->secondID]->rigidbody.angularVelocity, collision->bDist[0]);
-                glm::vec2 tangent = -relativeVel - (glm::dot(relativeVel, collision->collisionNormal) * collision->collisionNormal);
-                if(tangent.x * tangent.x + tangent.y * tangent.y == 0) continue;
-                tangent = glm::normalize(tangent);
-                glm::vec2 j_tb = tangent;
-                glm::vec2 j_ta = -j_tb;
-                float j_wa = mathFuncs::cross(-collision->aDist[i], j_tb);
-                float j_wb = mathFuncs::cross(collision->bDist[i], j_tb);
+            // for(int i = 0; i < collision->numContacts; i++)
+            // {
+            //     glm::vec2 tangent = collision->collisionTangent[i];
+            //     if(collision->firstID == 0) std::cout << tangent.x << " " << tangent.y << "\n";
+            //     if(tangent.x * tangent.x + tangent.y * tangent.y == 0) continue;
+            //     glm::vec2 j_tb = tangent;
+            //     glm::vec2 j_ta = -j_tb;
+            //     float j_wa = collision->j_wat[i];
+            //     float j_wb = collision->j_wbt[i];
                 
-                float jv = -(glm::dot(j_ta, (*entities)[collision->firstID]->rigidbody.velocity) + 
-                    j_wa * (*entities)[collision->firstID]->rigidbody.angularVelocity + 
-                    glm::dot(j_tb, (*entities)[collision->secondID]->rigidbody.velocity) +
-                    j_wb * (*entities)[collision->secondID]->rigidbody.angularVelocity);
+            //     float jv = glm::dot(j_ta, (*entities)[collision->firstID]->rigidbody.velocity) + 
+            //         j_wa * (*entities)[collision->firstID]->rigidbody.angularVelocity + 
+            //         glm::dot(j_tb, (*entities)[collision->secondID]->rigidbody.velocity) +
+            //         j_wb * (*entities)[collision->secondID]->rigidbody.angularVelocity;
 
                 
-                float lambda = 1.0f / collision->effectiveMass[i] * jv;
-                float friction = std::max((*entities)[collision->firstID]->rigidbody.muk, (*entities)[collision->secondID]->rigidbody.muk);
-                float staticFriction = std::max((*entities)[collision->firstID]->rigidbody.mus, (*entities)[collision->secondID]->rigidbody.mus);
-                float normalForce = std::abs(lambdas[i]) * friction;
-                if(std::abs(lambda) > std::abs(staticFriction * normalForce)) 
-                    lambda = mathFuncs::clamp(-normalForce, normalForce, lambda);
+            //     float lambda = 1.0f / collision->effectiveTangentMass[i] * -jv;
+            //     float friction = std::max((*entities)[collision->firstID]->rigidbody.muk, (*entities)[collision->secondID]->rigidbody.muk);
+                
+            //     float normalForce = collision->tot[i];
+            //     float oldImpulse = collision->totTangent[i];
+            //     collision->totTangent[i] = mathFuncs::clamp(-normalForce * friction, normalForce * friction, oldImpulse + lambda);
+            //     lambda = collision->totTangent[i] - oldImpulse;
 
-                (*entities)[collision->firstID]->rigidbody.velocity += j_ta * lambda * 
-                                                            (*entities)[collision->firstID]->rigidbody.invMass;
-                (*entities)[collision->firstID]->rigidbody.angularVelocity += j_wa * lambda *
-                                                                (*entities)[collision->firstID]->rigidbody.invMomentOfInertia;
-                (*entities)[collision->secondID]->rigidbody.velocity += j_tb * lambda * 
-                                                                (*entities)[collision->secondID]->rigidbody.invMass;
-                (*entities)[collision->secondID]->rigidbody.angularVelocity += j_wb * lambda *
-                                                                (*entities)[collision->secondID]->rigidbody.invMomentOfInertia;
-            }
+            //     (*entities)[collision->firstID]->rigidbody.velocity += j_ta * lambda * 
+            //                                                     (*entities)[collision->firstID]->rigidbody.invMass;
+            //     (*entities)[collision->firstID]->rigidbody.angularVelocity += j_wa * lambda *
+            //                                                     (*entities)[collision->firstID]->rigidbody.invMomentOfInertia;
+            //     (*entities)[collision->secondID]->rigidbody.velocity += j_tb * lambda * 
+            //                                                     (*entities)[collision->secondID]->rigidbody.invMass;
+            //     (*entities)[collision->secondID]->rigidbody.angularVelocity += j_wb * lambda *
+            //                                                     (*entities)[collision->secondID]->rigidbody.invMomentOfInertia;
+            // }
         }
-    } while(std::abs(largestImpulse) > std::abs(smallestImpulse));
+    } 
 
     prevTots.clear();
     for(int pos = 0; pos < collisionManifolds.size(); pos++)
@@ -377,7 +411,6 @@ void collisionSolver::resolveCollisions()
             float b = -(bias / setup::fixedDeltaTime) * std::max(collision->penetrationDepth - slop, 0.0f) + restitution * velAlongNormal;
             float lambda = 1.0f / collision->effectiveMass[i] * (-b);
             // std::cout << b << std::endl;
-            largestImpulse = std::max(largestImpulse, lambda);
 
             (*entities)[collision->firstID]->rigidbody.velocity += -collision->collisionNormal * lambda * 
                                                             (*entities)[collision->firstID]->rigidbody.invMass;
