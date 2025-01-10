@@ -245,8 +245,8 @@ float collisionSolver::singularSolve(collisionManifold* collision, int p)
             j_wa * (*entities)[collision->firstID]->rigidbody.angularVelocity + 
             glm::dot(j_vb, (*entities)[collision->secondID]->rigidbody.velocity) +
             j_wb * (*entities)[collision->secondID]->rigidbody.angularVelocity;
-
-    float b = -(bias / setup::fixedDeltaTime) * std::max(collision->penetrationDepth - slop, 0.0f) + collision->restitutions[p];
+    //it's + restituion because restitution is opposite what we want it to be since it's negative so it doesn't need to be negated (Jv=b)
+    float b = -(bias / setup::fixedDeltaTime) * std::max(collision->penetrationDepth - slop, 0.0f) + collision->restitutions[p]; 
     
     float lambda = (1.0f / collision->effectiveMass[p]) * -(jv + b);
     return lambda;
@@ -437,5 +437,4 @@ void collisionSolver::resolveCollisions()
         prev.numContacts = collisionManifolds[pos].numContacts;
         prevTots.push_back(prev);
     }
-    std::cout << std::endl;
 }

@@ -9,8 +9,10 @@ class polygonRigidbody
     public:
         glm::vec2 force, velocity, impulse;
         float mass, invMass, momentOfInertia, invMomentOfInertia;
+        float startMass, startMOI, startRestitution, startMu;
         float angularImpulse, angularVelocity, torque;
         float restitution;
+        bool rectangleMomentOfInertia;
         float mu;
         entity* base;
         polygonRigidbody();
@@ -28,6 +30,10 @@ class polygonRigidbody
         void gravity(float amount);
         void updateVel();
         void updatePos();
+        void setMass(float m);
+        void setMomentOfInertia(float i);
+        void setRestitution(float r);
+        void setFriction(float u);
     private:
 };
 #endif

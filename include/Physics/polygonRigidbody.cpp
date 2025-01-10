@@ -19,11 +19,16 @@ polygonRigidbody::polygonRigidbody(float m, float moi, float r, float u, entity*
     torque = 0;
     angularImpulse = 0;
     mu = u;
+    rectangleMomentOfInertia = false;
+    startMass = mass;
+    startMOI = momentOfInertia;
+    startRestitution = restitution;
+    startMu = u;
 }
 void polygonRigidbody::updateVel()
 {
-    velocity += force * invMass * setup::fixedDeltaTime;
-    angularVelocity += torque * invMomentOfInertia * setup::fixedDeltaTime;
+    velocity += force * invMass * setup::fixedDeltaTime + impulse * invMass;
+    angularVelocity += torque * invMomentOfInertia * setup::fixedDeltaTime + angularImpulse * invMomentOfInertia;
     force = glm::vec2(0.0f, 0.0f);
     impulse = glm::vec2(0.0f, 0.0f);
     torque = 0;
@@ -40,6 +45,7 @@ void polygonRigidbody::updatePos()
 }
 void polygonRigidbody::setRectangleMomentOfInertia()
 {
+    rectangleMomentOfInertia = true;
     if(mass == 0) 
     {
         momentOfInertia = 0;
@@ -56,7 +62,6 @@ void polygonRigidbody::addForce(float x, float y)
 }
 void polygonRigidbody::addImpulse(float x, float y)
 {
-    // velocity += glm::vec2(x, y) * invMass;
     impulse += glm::vec2(x, y);
 }
 void polygonRigidbody::addTorque(float forceX, float forceY, float xPos, float yPos)
@@ -74,12 +79,10 @@ void polygonRigidbody::addAngularImpulse(float impulseX, float impulseY, float x
     glm::vec2 dist = glm::vec2(xPos , yPos) - (*base).collider.centroid;
     glm::vec2 impulse = glm::vec2(impulseX, impulseY);
     angularImpulse += mathFuncs::cross(dist, impulse);
-    // angularVelocity += mathFuncs::cross(dist, impulse) * invMomentOfInertia;
 }
 void polygonRigidbody::addAngularImpulse(float amt)
 {
     angularImpulse += amt;
-    // angularVelocity += amt * invMomentOfInertia;
 }
 void polygonRigidbody::addForceAtPoint(float forceX, float forceY, float xPos, float yPos)
 {
@@ -101,4 +104,23 @@ void polygonRigidbody::applyImpulses()
     angularVelocity += angularImpulse * invMomentOfInertia;
     impulse = glm::vec2(0.0f, 0.0f);
     angularImpulse = 0;
+}
+void polygonRigidbody::setMass(float m)
+{
+    mass = m < 0 ? 0 : m;
+    invMass = mass == 0 ? 0 : 1 / mass;
+    if(rectangleMomentOfInertia) setRectangleMomentOfInertia();
+}
+void polygonRigidbody::setMomentOfInertia(float i)
+{
+    momentOfInertia = i < 0 ? 0 : i;
+    invMomentOfInertia = momentOfInertia == 0 ? 0 : 1 / momentOfInertia;
+}
+void polygonRigidbody::setRestitution(float r)
+{
+    restitution = mathFuncs::clamp(0.0f, 1.0f, r);
+}
+void polygonRigidbody::setFriction(float u)
+{
+    mu = std::max(0.0f, u);
 }

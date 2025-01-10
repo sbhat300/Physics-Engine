@@ -11,6 +11,10 @@ TO COMPLETELY REMOVE FROM BUILD:
 -Delete everything starting with DataLoader:: and gui:: from main script
 -Delete guiSave from entity
 */
+
+float gui::angularImpulse = 0;
+float gui::impulses[2] = {0, 0};
+
 void gui::init(GLFWwindow *window)
 {
     IMGUI_CHECKVERSION();
@@ -37,8 +41,9 @@ void gui::preLoop()
             debugStep();
         }
         entityOptions();
-        if(currentID != -1 && (*(*entityList)[currentID]).contain[0]) polygonOptions();
-        if(currentID != -1 && (*(*entityList)[currentID]).contain[1]) polygonColliderOptions();
+        if(currentID != -1 && (*entityList)[currentID]->contain[0]) polygonOptions();
+        if(currentID != -1 && (*entityList)[currentID]->contain[1]) polygonColliderOptions();
+        if(currentID != -1 && (*entityList)[currentID]->contain[2]) polygonRigidbodyOptions();
         shg();
         ImGui::End();
     }
@@ -163,6 +168,29 @@ void gui::polygonColliderOptions()
         ImGui::TreePop();
     }
 }
+void gui::polygonRigidbodyOptions()
+{
+    if(ImGui::TreeNode("Polygon Rigidbody"))
+    {
+        float num = (*entityList)[currentID]->rigidbody.mass;
+        if(ImGui::DragFloat("Mass", &num, 1.0f)) (*entityList)[currentID]->rigidbody.setMass(num);
+        num = (*entityList)[currentID]->rigidbody.momentOfInertia;
+        if(ImGui::DragFloat("MOI", &num, 1.0f)) (*entityList)[currentID]->rigidbody.setMomentOfInertia(num);
+        num = (*entityList)[currentID]->rigidbody.restitution;
+        if(ImGui::DragFloat("COR", &num, 0.01f)) (*entityList)[currentID]->rigidbody.setRestitution(num);
+        num = (*entityList)[currentID]->rigidbody.mu;
+        if(ImGui::DragFloat("mu", &num, 0.01f)) (*entityList)[currentID]->rigidbody.setFriction(num);
+        float nums[2] = {(*entityList)[currentID]->rigidbody.velocity.x, (*entityList)[currentID]->rigidbody.velocity.y};
+        if(ImGui::DragFloat2("V", nums, 1.0f)) (*entityList)[currentID]->rigidbody.velocity = glm::vec2(nums[0], nums[1]);
+        num = (*entityList)[currentID]->rigidbody.angularVelocity;
+        if(ImGui::DragFloat("w", &num, 1.0f)) (*entityList)[currentID]->rigidbody.angularVelocity = num;
+        ImGui::DragFloat2("Impulse", impulses, 1);
+        if(ImGui::Button("Apply L")) (*entityList)[currentID]->rigidbody.addImpulse(impulses[0], impulses[1]);
+        ImGui::DragFloat("Ang Impulse", &angularImpulse, 1);
+        if(ImGui::Button("Apply J")) (*entityList)[currentID]->rigidbody.addAngularImpulse(angularImpulse);
+        ImGui::TreePop();
+    }
+}
 void gui::shg()
 {
     if(ImGui::TreeNode("Spatial Hash Grid"))
@@ -233,6 +261,19 @@ std::string gui::getEntityData(int i, bool saved)
             output += " pco" + std::to_string((*(*entityList)[i]).collider.startPositionOffset.x) + "," + std::to_string((*(*entityList)[i]).collider.startPositionOffset.y) + 
                 " sco" + std::to_string((*(*entityList)[i]).collider.startScaleOffset.x) + "," + std::to_string((*(*entityList)[i]).collider.startScaleOffset.y) + 
                 " rco" + std::to_string((*(*entityList)[i]).collider.startRotationOffset);
+    if(!(*(*entityList)[i]).contain[2])
+        output += " x x x x";
+    else
+        if(saved)
+            output += " prm" + std::to_string((*entityList)[i]->rigidbody.mass) +
+                      " pri" + std::to_string((*entityList)[i]->rigidbody.momentOfInertia) + 
+                      " prr" + std::to_string((*entityList)[i]->rigidbody.restitution) + 
+                      " pru" + std::to_string((*entityList)[i]->rigidbody.mu);
+        else
+            output += " prm" + std::to_string((*entityList)[i]->rigidbody.startMass) +
+                      " pri" + std::to_string((*entityList)[i]->rigidbody.startMOI) + 
+                      " prr" + std::to_string((*entityList)[i]->rigidbody.startRestitution) + 
+                      " pru" + std::to_string((*entityList)[i]->rigidbody.startMu);
 
     output += "\n";
     return output;

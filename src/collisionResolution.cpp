@@ -154,8 +154,8 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 1.0f, 0.4f);
-    rect.addPolygonRigidbody(15.0f, 0.0f, 1.0f, 0.4f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.4f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
     rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.4f);
     /*-----END-----*/
 

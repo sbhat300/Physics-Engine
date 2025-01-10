@@ -65,6 +65,10 @@ void entity::setScale(float x, float y)
         collider.updatePoints();
         collider.updateFurthestPoint();
     }
+    if(contain[2] && rigidbody.rectangleMomentOfInertia)
+    {
+        rigidbody.setRectangleMomentOfInertia();
+    }
 }
 void entity::setRotation(float degrees)
 {

@@ -23,10 +23,13 @@ namespace gui
     extern ImGuiIO& io;
     extern spatialHashGrid* spatialHash;
     void init(GLFWwindow *window);
+    extern float impulses[2];
+    extern float angularImpulse;
     void preLoop();
     void entityOptions();
     void polygonOptions();
     void polygonColliderOptions();
+    void polygonRigidbodyOptions();
     void shg();
     std::string getEntityData(int i, bool saved);
     void postLoop();
