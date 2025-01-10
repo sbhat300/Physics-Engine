@@ -4,7 +4,7 @@
 #include <mathFuncs.h>
 
 polygonRigidbody::polygonRigidbody(){}
-polygonRigidbody::polygonRigidbody(float m, float moi, float r, float uk, float us, entity* b)
+polygonRigidbody::polygonRigidbody(float m, float moi, float r, float u, entity* b)
 {
     mass = m;
     momentOfInertia = moi;
@@ -18,8 +18,7 @@ polygonRigidbody::polygonRigidbody(float m, float moi, float r, float uk, float 
     angularVelocity = 0;
     torque = 0;
     angularImpulse = 0;
-    muk = uk;
-    mus = us;
+    mu = u;
 }
 void polygonRigidbody::updateVel()
 {

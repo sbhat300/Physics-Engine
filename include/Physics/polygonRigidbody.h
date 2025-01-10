@@ -11,10 +11,10 @@ class polygonRigidbody
         float mass, invMass, momentOfInertia, invMomentOfInertia;
         float angularImpulse, angularVelocity, torque;
         float restitution;
-        float muk, mus;
+        float mu;
         entity* base;
         polygonRigidbody();
-        polygonRigidbody(float m, float moi, float r, float uk, float us, entity* b);
+        polygonRigidbody(float m, float moi, float r, float u, entity* b);
         void setRectangleMomentOfInertia();
         void addForce(float x, float y);
         void addTorque(float forceX, float forceY, float xPos, float yPos);

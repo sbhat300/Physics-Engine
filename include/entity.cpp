@@ -46,9 +46,9 @@ void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, 
     collider.id = id;
     contain[1] = true;
 }
-void entity::addPolygonRigidbody(float mass, float momentOfInertia, float restitution, float muk, float mus)
+void entity::addPolygonRigidbody(float mass, float momentOfInertia, float restitution, float mu)
 {
-    rigidbody = polygonRigidbody(mass, momentOfInertia, restitution, muk, mus, this);
+    rigidbody = polygonRigidbody(mass, momentOfInertia, restitution, mu, this);
     contain[2] = true;
 }
 void entity::setPosition(float x, float y)

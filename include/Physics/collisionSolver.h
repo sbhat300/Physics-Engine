@@ -26,6 +26,7 @@ struct collisionManifold
     glm::vec2 collisionTangent[2];
     glm::vec2 cp[2];
     float tot[2];
+    float totTangent[2];
     float effectiveMass[2];
     float j_wa[2], j_wb[2];
     glm::vec2 aDist[2], bDist[2];

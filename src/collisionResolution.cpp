@@ -65,7 +65,7 @@ sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
 entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
-entity rect("player", glm::vec2(-79, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
+entity rect("player", glm::vec2(-79, 50), glm::vec2(40.000000, 40.000000), glm::radians(20.0f), &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
@@ -136,8 +136,8 @@ int main() {
     shared.initVAOs();
 
     solver.entities = &entities;
-    solver.bias = 0.07f;
-    solver.slop = 0.01f;
+    solver.bias = 0.01f;
+    solver.slop = 0.1f;
     solver.smallestImpulse = 0.1f;
     solver.positionIter = 3;
 
@@ -154,9 +154,9 @@ int main() {
     /*-----END-----*/
 
     /*-----RIGIDBODY INITIALIZATION-----*/
-	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.5f, 0.7f);
-    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.5f, 0.7f);
-    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.5f, 0.7f);
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.7f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.7f);
+    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.7f);
     /*-----END-----*/
 
     rDebugPoint.setColor(glm::vec3(1, 1, 1));
@@ -187,7 +187,6 @@ int main() {
     Shader shader("gravityVShader", "gravityFShader");
     Shader pointShader("pointVShader", "gravityFShader");
     Shader rayShader("rayVShader", "gravityFShader");
-
 
 
     configureShader(shader);
