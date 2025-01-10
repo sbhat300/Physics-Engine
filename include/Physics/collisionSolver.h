@@ -23,14 +23,13 @@ struct collisionManifold
     int numContacts;
     float penetrationDepth;
     glm::vec2 collisionNormal;
-    glm::vec2 collisionTangent[2];
     glm::vec2 cp[2];
     float tot[2];
     float totTangent[2];
     float effectiveMass[2];
     float j_wa[2], j_wb[2];
     glm::vec2 aDist[2], bDist[2];
-    glm::vec2 relativeVel[2];
+    float restitutions[2];
 };
 
 struct warmStarts
@@ -38,6 +37,7 @@ struct warmStarts
     unsigned int firstID, secondID;
     int numContacts;
     float tot[2];
+    float totTangent[2];
 };
 
 class collisionSolver
@@ -52,8 +52,8 @@ class collisionSolver
         std::unordered_map<unsigned int, entity*>* entities;
         float bias;
         float slop;
+        float restitutionSlop;
         float smallestImpulse;
-        int positionIter;
         collisionSolver();
         collisionSolver(unsigned int* c);
         void reset();
@@ -62,7 +62,7 @@ class collisionSolver
         void resolveCollisions();
         void setupManifolds();
         void warmStart();
-        void blockSolve(collisionManifold* collision, float* out);
+        void blockSolve(collisionManifold* collision, float* out, float (&effectiveMass)[2][2], float* combinedMass);
         float singularSolve(collisionManifold* collision, int p);
     private:
         static bool compareCollision(collisionInfo lhs, collisionInfo rhs);
