@@ -19,11 +19,17 @@ add_executable(${PROJECT_NAME}  ${PROJECT_SOURCE_DIR}/src/collisionResolution.cp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/polygonCollider.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/ray.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Shader/shader.cpp
-                                ${PROJECT_SOURCE_DIR}/include/sharedData.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Engine/sharedData.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Engine/inputHandler.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/spatialHashGrid.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/polygonRigidbody.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Physics/collisionSolver.cpp
                                 ${PROJECT_SOURCE_DIR}/include/mathFuncs.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Sound/audioPlayer.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Sound/audioClip.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Sound/audioLinkedList.cpp
+                                ${PROJECT_SOURCE_DIR}/include/Sound/audioManager.cpp
+                                ${PROJECT_SOURCE_DIR}/include/FileLoader/wavFile.cpp
                                 ${imgui_SRC}
                                 )
 
@@ -37,5 +43,6 @@ elseif(APPLE)
         target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libglfw.3.dylib)
     else()
         target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libglfw.3.4.dylib)
+        target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libsoundio.2.0.0.dylib)
     endif()
 endif()

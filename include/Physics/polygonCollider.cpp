@@ -10,7 +10,7 @@
 #include <glm/gtx/norm.hpp>
 #include <set>
 #include "Physics/polygonCollider.h"
-#include <setup.h>
+#include <Engine/setup.h>
 #include <cmath>
 
 polygonCollider::polygonCollider(){}

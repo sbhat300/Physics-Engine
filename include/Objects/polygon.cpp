@@ -114,7 +114,6 @@ void polygon::renderPolygon(float alpha)
 }
 void polygon::initVAO()
 {
-    std::cout<< "A" << std::endl;
     glGenVertexArrays(1, &polygonVAO);
     glGenBuffers(1, &polygonVBO);
     glBindVertexArray(polygonVAO);

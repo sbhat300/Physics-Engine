@@ -11,5 +11,6 @@ namespace mathFuncs
     glm::vec2 cross(glm::vec2 first, float second);
     glm::vec2 cross(float first, glm::vec2 second);
     float clamp(float low, float high, float val);
+    float interpolate(float low, float high, float split);
 };
 #endif  

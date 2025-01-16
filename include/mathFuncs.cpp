@@ -16,3 +16,7 @@ float mathFuncs::clamp(float low, float high, float val)
 {
     return std::min(high, std::max(low, val));
 }
+float mathFuncs::interpolate(float low, float high, float split)
+{
+    return low * (1 - split) + high * split;
+}

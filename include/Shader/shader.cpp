@@ -6,15 +6,12 @@
 #include <glm/glm.hpp>
 #include <FileLoader/fileLoader.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <Engine/setup.h>
 #include "Shader/shader.h"
   
 
 Shader::Shader(const char* vertexName, const char* fragmentName)
 {
-    bool windows = true;
-    #ifdef __APPLE__
-        windows = false;
-    #endif
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;
@@ -24,8 +21,8 @@ Shader::Shader(const char* vertexName, const char* fragmentName)
     fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
     try 
     {
-        vShaderFile.open(fileLoader::loadShader(vertexName, windows));
-        fShaderFile.open(fileLoader::loadShader(fragmentName, windows));
+        vShaderFile.open(fileLoader::loadShader(vertexName, setup::windows));
+        fShaderFile.open(fileLoader::loadShader(fragmentName, setup::windows));
         std::stringstream vShaderStream, fShaderStream;
         vShaderStream << vShaderFile.rdbuf();
         fShaderStream << fShaderFile.rdbuf();		
@@ -79,10 +76,6 @@ Shader::Shader(const char* vertexName, const char* fragmentName)
 }
 Shader::Shader(const char* vertexName, const char* geometryName, const char* fragmentName)
 {
-    bool windows = true;
-    #ifdef __APPLE__
-        windows = false;
-    #endif
     std::string vertexCode;
     std::string fragmentCode;
     std::string geometryCode;
@@ -95,9 +88,9 @@ Shader::Shader(const char* vertexName, const char* geometryName, const char* fra
     gShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
     try 
     {
-        vShaderFile.open(fileLoader::loadShader(vertexName, windows));
-        fShaderFile.open(fileLoader::loadShader(fragmentName, windows));
-        gShaderFile.open(fileLoader::loadShader(geometryName, windows));
+        vShaderFile.open(fileLoader::loadShader(vertexName, setup::windows));
+        fShaderFile.open(fileLoader::loadShader(fragmentName, setup::windows));
+        gShaderFile.open(fileLoader::loadShader(geometryName, setup::windows));
         std::stringstream vShaderStream, fShaderStream, gShaderStream;;
         vShaderStream << vShaderFile.rdbuf();
         fShaderStream << fShaderFile.rdbuf();	

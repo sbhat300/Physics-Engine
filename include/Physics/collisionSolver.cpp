@@ -1,6 +1,6 @@
 #include "Physics/collisionSolver.h"
 #include <iostream>
-#include <setup.h>
+#include <Engine/setup.h>
 #include <unordered_map>
 #include <mathFuncs.h>
 #include <algorithm>
@@ -223,7 +223,7 @@ void collisionSolver::blockSolve(collisionManifold* collision, float* out, float
     mass[0][1] = ((*entities)[collision->firstID]->rigidbody.invMass + 
                 (*entities)[collision->secondID]->rigidbody.invMass + 
                 j_wa2 * j_wa1 * (*entities)[collision->firstID]->rigidbody.invMomentOfInertia +
-                j_wa2 * j_wa1 * (*entities)[collision->secondID]->rigidbody.invMomentOfInertia);
+                j_wb2 * j_wb1 * (*entities)[collision->secondID]->rigidbody.invMomentOfInertia);
     mass[1][0] = mass[0][1];
     *combinedMass = mass[0][1];
     float det = 1 / (mass[0][0] * mass[1][1] - mass[0][1] * mass[1][0]);
@@ -420,6 +420,7 @@ void collisionSolver::resolveCollisions()
             }
         }
     } while(std::abs(largestImpulse) > std::abs(smallestImpulse) && counter < 50);
+
     
     prevTots.clear();
     for(int pos = 0; pos < collisionManifolds.size(); pos++)

@@ -12,92 +12,98 @@
 #include <Physics/ray.h>
 #include <Objects/point.h>
 #include <list>
-#include <unordered_map>
+#include <unordered_map> 
 #include <math.h>
+#include <cmath>
 #include <Physics/rayData.h>
 #include <Physics/spatialHashGrid.h>
-#include <imgui/imguiInitialize.h>
+#include <ImguiImplementation/imguiInitialize.h>
 #include <fstream>
 #include <string>
 #include <FileLoader/objDataLoader.h>
+#include <FileLoader/fileLoader.h>
+#include <Engine/sharedData.h>
+#include <setup.h>
+#include <algorithm>
+#include "config.h"
+#include <Physics/collisionSolver.h>
+#include <mathFuncs.h>
+#include <functional>
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void updateDeltaTime();
 void configureShader(Shader& shader);
 void setCamSettings();
-void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2);
+void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void bufferMatrices(int ubo);
+void timestep();
+void physics();
+void render(float alpha);
+void debugRender();
 
 float windowHeight = 600, windowWidth = 1200;
-int maxLayers = 10;
-camera2D camera(glm::vec3(0, 0, maxLayers));
+int setup::maxLayers = 10;
+camera2D camera(glm::vec3(0, 0, setup::maxLayers));
 float deltaTime = 0.0f, lastFrame = 0.0f;
-int counter = 0;
+float setup::fixedDeltaTime = 1 / 60.0f;
+float setup::linearDamping = 0.999f;
+float setup::angularDamping = 0.997f;
+float accumulator = 0;
+unsigned int counter = 0;
 
-std::fstream DataLoader::data = std::fstream("collisionsObjectData.txt", std::ios::out | std::ios::in | std::ios::trunc);
+
 int DataLoader::previousDataPos = -1;
-const char* DataLoader::name = "collisionsObjectData.txt";
+const char* DataLoader::name = "D:\\PhysicsEngine\\src\\collisionsObjectData.txt";
 
-std::unordered_map<int, entity*> entities;
+std::unordered_map<unsigned int, entity*> entities;
+
+sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(20.000000, -5.000000), glm::vec2(10.000000, 10.000000), 0.000000, &entities, &counter, &DataLoader::data);
-entity rect("player", glm::vec2(-200.000000, -300.000000), glm::vec2(40.000000, 40.000000), 0.000000, &entities, &counter, &DataLoader::data);
-entity rect2("big rect", glm::vec2(200.000000, -300.000000), glm::vec2(40.000000, 100.000000), 0.000000, &entities, &counter, &DataLoader::data);
+entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
+entity rect("player", glm::vec2(-79, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
+entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
 point rDebugPoint(0, 0, 6);
 
-spatialHashGrid grid(500, 500, glm::vec2(4, 4), glm::vec2(-300, -400));
+spatialHashGrid grid(900, 700, glm::vec2(3, 3), glm::vec2(-380, -400));
 
-ray r(glm::vec2(-50, -300), glm::vec2(0.35, 1.4), 50, &grid);
+collisionSolver solver(&counter);
 
-std::unordered_map<int, entity*>* gui::entityList = &entities;
+bool keys[26];
+const unsigned char KEY_OFFSET = 65;
 
+std::unordered_map<unsigned int, entity*>* gui::entityList = &entities;
 int gui::currentID = -1;
 bool gui::editMode = false;
 bool gui::saveAll = false;
+bool gui::paused = false;
 int gui::maxEntityCount = counter - 1;
+float gui::fps = 0;
+
+std::function<void()> gui::debugStep = debugRender;
+
+spatialHashGrid* gui::spatialHash = &grid; 
+
+std::string fileLoader::rootPath = ROOT_DIR;
 
 glm::vec2 mousePos;
 
-int main() {
-    /*-----POLYGON INITIALIZATION-----*/
-	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
-	rect.addPolygon(glm::vec2(40.000000, 40.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
-	rect2.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.200000, 0.400000, 0.300000), 1);
-    /*-----END-----*/
-    
-    rect.polygonInstance.initRectangle();
-    bottomFloor.polygonInstance.initRectangle();
-    rect2.polygonInstance.initRectangle();
-    
-    /*-----COLLIDER INITIALIZATION-----*/
-	bottomFloor.addPolygonCollider(&grid, glm::vec2(12, 52), glm::vec2(12, 93), 91);
-	rect.addPolygonCollider(&grid, glm::vec2(23, 99), glm::vec2(93, 11), 64);
-	rect2.addPolygonCollider(&grid, glm::vec2(54, 19), glm::vec2(67, 28), 99);
-    /*-----END-----*/
 
-    rect2.collider.initRectangle();
-    rect.collider.initRectangle();
-    bottomFloor.collider.initRectangle();
-
-    // rect.collider.setPositionOffset(40, 40);
-    // rect.polygonInstance.setPositionOffset(40, 40);
-    rect.collider.setCollisionCallback(collisionCallback);
-    bottomFloor.collider.collide = false;
-
-    r.layer = 1;
-
-    rDebugPoint.setColor(glm::vec3(1, 1, 1));
-    rDebugPoint.setLayer(2);
-
-    grid.setColor(glm::vec3(1, 0.5f, 1));
-    grid.setLayer(0);
-
+int main() { 
+    float p[] = {
+        1, 0,  // top right
+        0.5f, 1,   // top left
+        -1, 0,  // bottom left 
+    };  
+    int rectIndices[6] = { 
+                            0, 1, 2,  
+                        }; 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -105,7 +111,7 @@ int main() {
     #ifdef __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     #endif
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow((int)windowWidth, (int)windowHeight, "EPIC OPENGL PROJECT", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -127,6 +133,54 @@ int main() {
 
     glEnable(GL_PROGRAM_POINT_SIZE);  
     glEnable(GL_DEPTH_TEST);  
+    shared.initVAOs();
+
+    solver.entities = &entities;
+    solver.bias = 0.01f;
+    solver.slop = 0.1f;
+    solver.smallestImpulse = 0.1f;
+    solver.restitutionSlop = 1.0f;
+
+    /*-----POLYGON INITIALIZATION-----*/
+	bottomFloor.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
+	rect.addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
+	rect2.addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.200000, 0.400000, 0.300000), 1);
+    /*-----END-----*/
+    
+    /*-----COLLIDER INITIALIZATION-----*/
+	bottomFloor.addPolygonCollider(&grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
+	rect.addPolygonCollider(&grid, glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000);
+	rect2.addPolygonCollider(&grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
+    /*-----END-----*/
+
+    /*-----RIGIDBODY INITIALIZATION-----*/
+	bottomFloor.addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.4f);
+    rect.addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
+    rect2.addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.4f);
+    /*-----END-----*/
+
+    rDebugPoint.setColor(glm::vec3(1, 1, 1));
+    rDebugPoint.setLayer(setup::maxLayers - 1);
+
+    grid.setColor(glm::vec3(1, 0.5f, 1));
+    grid.setLayer(0);
+
+    rect.polygonInstance.initRectangle();
+    bottomFloor.polygonInstance.initRectangle();
+    rect2.polygonInstance.initRectangle();
+
+    rect2.collider.initRectangle();
+    rect.collider.initRectangle();
+    bottomFloor.collider.initRectangle();
+
+    rect.collider.setCollisionCallback(collisionCallback);
+    rect2.collider.setCollisionCallback(collisionCallback);
+    bottomFloor.collider.setCollisionCallback(collisionCallback);
+
+    bottomFloor.rigidbody.setRectangleMomentOfInertia();
+    rect.rigidbody.setRectangleMomentOfInertia();
+    rect2.rigidbody.setRectangleMomentOfInertia();
+    // bottomFloor.collider.collide = false;
 
     gui::init(window);
 
@@ -138,9 +192,15 @@ int main() {
     configureShader(shader);
     configureShader(pointShader);
     configureShader(rayShader);
+
     rect.collider.debugShaderProgram = pointShader.ID;
     rect2.collider.debugShaderProgram = pointShader.ID;
     bottomFloor.collider.debugShaderProgram = pointShader.ID;
+    grid.debugShaderProgram = rayShader.ID;
+    rect.polygonInstance.shaderProgram = shader.ID;
+    rect2.polygonInstance.shaderProgram = shader.ID;
+    bottomFloor.polygonInstance.shaderProgram = shader.ID;
+    rDebugPoint.debugShaderProgram = pointShader.ID;
 
     unsigned int matrixUBO;
     glGenBuffers(1, &matrixUBO);
@@ -150,9 +210,11 @@ int main() {
     glm::mat4 projection = glm::ortho(0.0f, windowWidth, 0.0f, windowHeight, 0.1f, 100.0f);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
+ 
     setCamSettings();
 
+    float fpsTimer = 0;
+    
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -160,55 +222,21 @@ int main() {
         gui::preLoop();
 
         updateDeltaTime();
+        
+        fpsTimer -= deltaTime;
+        if(fpsTimer < 0)
+        {
+            gui::fps = std::round(1 / deltaTime);
+            fpsTimer = 1;
+        }
         processInput(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         bufferMatrices(matrixUBO);
-        shader.use();
-        rect.polygonInstance.render();
-        bottomFloor.polygonInstance.render();
-        rect2.polygonInstance.render();
-        rect.collider.updateCollider();
-        bottomFloor.collider.updateCollider();
-        rect2.collider.updateCollider();
-        rayShader.use();
-        r.render();
-        // grid.drawGrid();
-        // rect.collider.renderColliderBounds();
-        // std::pair<bool, rayData> rdata2 = r.getFirstCollision();
-        // if(rdata2.first)
-        // {
-        //     rDebugPoint.setPosition(rdata2.second.collisionPoint.x, rdata2.second.collisionPoint.y);
-        //     rDebugPoint.render();
-        // }
-        pointShader.use();
-        std::vector<rayData> rdata = r.getCollisions();
-        for(int i = 0; i < rdata.size(); i++) 
-        {
-            rDebugPoint.setPosition(rdata[i].collisionPoint.x, rdata[i].collisionPoint.y);
-            rDebugPoint.render();
-        }
-        // std::cout << &(rect.collider) << " " << &(rect2.collider) << " " << &(bottomFloor.collider) << std::endl;
-        // std::vector<polygonCollider*> b = grid.getNearby(&(rect.collider));
-        // for(auto i = b.begin(); i != b.end(); i++)
-        // {
-        //     std::cout << (*(*i)).id << std::endl;
-        // }
-        // std::vector<polygonCollider*> b = grid.getNearby(rect.position.x, rect.position.y);
-        // for(auto i = b.begin(); i != b.end(); i++)
-        // {
-        //     std::cout << (*(*i)).id << std::endl;
-        // }
-        // std::cout << std::endl;
-        // std::pair<int, int> a = grid.getCellIndexNoClamp(rect.position.x, rect.position.y);
-        // std::cout << a.first << " " << a.second << std::endl;
-        // for(auto i : grid.grid[a.first][a.second])
-        // {
-        //     std::cout << (*i).id << std::endl;
-        // }
-        // std::cout << std::endl;
-        // std::cout << a.first << " " << a.second << std::endl;
-        // rect2.setPosition(rect2.position.x, -300 + 100 * sin(glfwGetTime()));
+
+        timestep();
+
+        grid.drawGrid();
 
         gui::postLoop();
         glfwSwapBuffers(window);
@@ -221,8 +249,8 @@ int main() {
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    windowWidth = width;
-    windowHeight = height;
+    windowWidth = (float)width;
+    windowHeight = (float)height;
 }
 void processInput(GLFWwindow* window)
 {
@@ -236,12 +264,13 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        rect.setRotation(rect.rotation + 50 * deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        rect.setRotation(rect.rotation - 50 * deltaTime); 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        r.length += 100 * deltaTime;  
+    if(!gui::paused)
+    {
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            rect.rigidbody.addForce(-7000, 0);
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            rect.rigidbody.addForce(7000, 0);
+    }
 }
 void updateDeltaTime()
 {
@@ -267,15 +296,27 @@ void setCamSettings()
     camera.camPos = glm::vec3(-windowWidth / 2, -windowHeight / 2, 10);
     camera.speed = 200.0f;
 }
-void collisionCallback(int first, int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
+void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
 {
-    std::cout << glm::to_string(collisionNormal) << " " << contactPoints << std::endl;
+    // std::cout << glm::to_string(collisionNormal) << " " << (float)penetrationDepth << std::endl;
+    if(contactPoints == 1)
+    {
+        rDebugPoint.setPosition(cp1.x, cp1.y);
+        // rDebugPoint.render();
+    }
+    if(contactPoints == 2)
+    {
+        rDebugPoint.setPosition(cp1.x, cp1.y);
+        // rDebugPoint.render();
+        rDebugPoint.setPosition(cp2.x, cp2.y);
+        // rDebugPoint.render();
+    }
+    solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
 }
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     mousePos = glm::vec2(camera.camPos.x + xpos, camera.camPos.y + (windowHeight - ypos));
-    rect.setPosition(mousePos.x, mousePos.y);
-    // std::cout << rect.pointInPolygon(glm::vec2(camera.camPos.x + xpos, camera.camPos.y + (windowHeight - ypos))) << std::endl;
+    // rect.setPosition(mousePos.x, mousePos.y);
 }
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -283,5 +324,68 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     if(!io.WantCaptureMouse && button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
     {
         gui::currentID = grid.testPoint(mousePos.x, mousePos.y);
+    }
+}
+void timestep()
+{
+    if(!gui::paused)
+    {
+        accumulator += deltaTime > 0.2f ? 0.2f : deltaTime;
+        if(accumulator > 0.2f) accumulator = 0.2f;
+        while(accumulator >= setup::fixedDeltaTime)
+        {
+            physics();
+            accumulator -= setup::fixedDeltaTime;
+        }
+        float alpha = accumulator / setup::fixedDeltaTime;
+        render(alpha);
+    }
+    else
+    {
+        render(0);
+    }
+}
+void debugRender()
+{
+    accumulator += deltaTime > 0.2f ? 0.2f : deltaTime;
+    if(accumulator > 0.2f) accumulator = 0.2f;
+    while(accumulator >= setup::fixedDeltaTime)
+    {
+        physics();
+        accumulator -= setup::fixedDeltaTime;
+    }
+    float alpha = accumulator / setup::fixedDeltaTime;
+    render(alpha);
+}
+void physics()
+{
+    //add forces
+    rect.rigidbody.gravity(50);
+    bottomFloor.rigidbody.gravity(50);
+
+    solver.reset();
+    for(std::pair<const int, entity*> obj : entities) 
+    {
+        if((*obj.second).contain[1]) (*obj.second).collider.updateCollider();
+    }
+    for(std::pair<unsigned int, entity*> obj : entities) 
+        if((*obj.second).contain[2]) (*obj.second).rigidbody.updateVel();
+    //solve collisions
+    solver.updateCollisions();
+    solver.resolveCollisions();
+    for(std::pair<unsigned int, entity*> obj : entities) 
+        if((*obj.second).contain[2]) (*obj.second).rigidbody.updatePos();
+    
+}
+void render(float alpha)
+{
+    for(std::pair<const int, entity*> obj : entities)
+    {
+        if((*obj.second).contain[0]) (*obj.second).polygonInstance.render(alpha);
+        if((*obj.second).contain[1])
+        {
+            if((*obj.second).collider.shouldRenderBounds) 
+                (*obj.second).collider.renderColliderBounds(); //FOR DEBUG REMOVE
+        }
     }
 }

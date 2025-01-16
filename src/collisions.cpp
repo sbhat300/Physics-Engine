@@ -22,8 +22,8 @@
 #include <string>
 #include <FileLoader/objDataLoader.h>
 #include <FileLoader/fileLoader.h>
-#include <sharedData.h>
-#include <setup.h>
+#include <Engine/sharedData.h>
+#include <Engine/setup.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);

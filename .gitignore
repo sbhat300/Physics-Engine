@@ -10,3 +10,5 @@ src/collisions.dSYM/
 .DS_Store
 /build
 lib/libglfw.3.dylib
+Audio/Gusty Garden Galaxy.wav
+Audio/24_bit_test.WAV

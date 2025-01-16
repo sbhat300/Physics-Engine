@@ -22,14 +22,19 @@
 #include <string>
 #include <FileLoader/objDataLoader.h>
 #include <FileLoader/fileLoader.h>
-#include <sharedData.h>
-#include <setup.h>
+#include <Engine/sharedData.h>
+#include <Engine/setup.h>
 #include <algorithm>
 #include "config.h"
 #include <Physics/collisionSolver.h>
 #include <mathFuncs.h>
 #include <functional>
-
+#include <Engine/inputHandler.h>
+#include <Sound/audioPlayer.h>
+#include <thread>
+#include <atomic>
+#include <FileLoader/wavFile.h>
+#include <Engine/engineConstants.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -37,8 +42,6 @@ void updateDeltaTime();
 void configureShader(Shader& shader);
 void setCamSettings();
 void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2);
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void bufferMatrices(int ubo);
 void timestep();
 void physics();
@@ -52,6 +55,8 @@ float deltaTime = 0.0f, lastFrame = 0.0f;
 float setup::fixedDeltaTime = 1 / 60.0f;
 float setup::linearDamping = 0.999f;
 float setup::angularDamping = 0.997f;
+bool setup::windows = true;
+std::atomic<bool> setup::shouldWindowClose(false);
 float accumulator = 0;
 unsigned int counter = 0;
 
@@ -64,8 +69,8 @@ std::unordered_map<unsigned int, entity*> entities;
 sharedData shared;
 
 /*-----ENTITY INITIALIZATION-----*/
-entity bottomFloor("small rect", glm::vec2(-79.000000, -10.000000), glm::vec2(50.000000, 50.000000), glm::radians(0.000000), &entities, &counter, &shared);
-entity rect("player", glm::vec2(-79, 50), glm::vec2(40.000000, 40.000000), glm::radians(0.0f), &entities, &counter, &shared);
+entity bottomFloor("small rect", glm::vec2(-79.000000, -40.000000), glm::vec2(50.000000, 50.000000), glm::radians(180.000000), &entities, &counter, &shared);
+entity rect("player", glm::vec2(0, 10), glm::vec2(40.000000, 40.000000), glm::radians(20.0f), &entities, &counter, &shared);
 entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000, &entities, &counter, &shared);
 /*-----END-----*/
 
@@ -92,17 +97,20 @@ spatialHashGrid* gui::spatialHash = &grid;
 
 std::string fileLoader::rootPath = ROOT_DIR;
 
-glm::vec2 mousePos;
-
 
 int main() { 
-    float p[] = {
-        1, 0,  // top right
-        0.5f, 1,   // top left
-        -1, 0,  // bottom left 
-    };  
+    #ifdef __APPLE__
+        setup::windows = false;
+    #endif
+    float rectVertices[8] = {
+        1 / 2.0f,  1 / 2.0f,  // top right
+        -1 / 2.0f,  2.0f,   // top left
+        -1 / 2.0f, -1 / 2.0f,  // bottom left 
+        1 / 2.0f, -1 / 2.0f  // bottom right
+    };
     int rectIndices[6] = { 
-                            0, 1, 2,  
+                            0, 1, 3,  
+                            1, 2, 3    
                         }; 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -128,8 +136,6 @@ int main() {
     glfwGetFramebufferSize(window, &initWidth, &initHeight);
     glViewport(0, 0, initWidth, initHeight);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     glEnable(GL_PROGRAM_POINT_SIZE);  
     glEnable(GL_DEPTH_TEST);  
@@ -166,12 +172,14 @@ int main() {
     grid.setLayer(0);
 
     rect.polygonInstance.initRectangle();
-    bottomFloor.polygonInstance.initRectangle();
+    // bottomFloor.polygonInstance.initRectangle();
+    bottomFloor.polygonInstance.initPolygon(4, rectVertices, 6, rectIndices);
     rect2.polygonInstance.initRectangle();
 
     rect2.collider.initRectangle();
     rect.collider.initRectangle();
-    bottomFloor.collider.initRectangle();
+    // bottomFloor.collider.initRectangle();
+    bottomFloor.collider.initPolygon(4, rectVertices);
 
     rect.collider.setCollisionCallback(collisionCallback);
     rect2.collider.setCollisionCallback(collisionCallback);
@@ -214,8 +222,13 @@ int main() {
     setCamSettings();
 
     float fpsTimer = 0;
+
+    unsigned int inputs[] = {GLFW_KEY_ESCAPE, GLFW_KEY_W, GLFW_KEY_A, GLFW_KEY_S, GLFW_KEY_D, GLFW_KEY_Q, GLFW_KEY_E, GLFW_MOUSE_BUTTON_1};
+    inputHandler::trackKeys(&inputs[0], 8);
+
+    std::thread audioThread(audioPlayer::start);
     
-    while (!glfwWindowShouldClose(window))
+    while(!setup::shouldWindowClose.load())
     {
         glfwPollEvents();
 
@@ -229,6 +242,7 @@ int main() {
             gui::fps = std::round(1 / deltaTime);
             fpsTimer = 1;
         }
+        inputHandler::update(window, &camera, windowHeight);
         processInput(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -240,9 +254,13 @@ int main() {
 
         gui::postLoop();
         glfwSwapBuffers(window);
+        setup::shouldWindowClose.store(glfwWindowShouldClose(window), std::memory_order::memory_order_relaxed);
+        std::thread::id this_id = std::this_thread::get_id();
     }
     gui::terminate();
     glfwTerminate();
+    setup::shouldWindowClose.store(true);
+    audioThread.join();
 	return 0;
 }
 
@@ -254,23 +272,26 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 void processInput(GLFWwindow* window)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    ImGuiIO& io = ImGui::GetIO();
+    if (inputHandler::buttons[GLFW_KEY_ESCAPE].down)
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (inputHandler::buttons[GLFW_KEY_W].down)
         camera.ProcessKeyboard(UP, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (inputHandler::buttons[GLFW_KEY_S].down)
         camera.ProcessKeyboard(DOWN, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (inputHandler::buttons[GLFW_KEY_A].down)
         camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (inputHandler::buttons[GLFW_KEY_D].down)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if(!gui::paused)
     {
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        if (inputHandler::buttons[GLFW_KEY_Q].down)
             rect.rigidbody.addForce(-7000, 0);
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        if (inputHandler::buttons[GLFW_KEY_E].down)
             rect.rigidbody.addForce(7000, 0);
     }
+    if(!io.WantCaptureMouse && inputHandler::buttons[GLFW_MOUSE_BUTTON_1].pressed)
+        gui::currentID = grid.testPoint(inputHandler::worldMousePos.x, inputHandler::worldMousePos.y);
 }
 void updateDeltaTime()
 {
@@ -313,19 +334,7 @@ void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collis
     }
     solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
 }
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    mousePos = glm::vec2(camera.camPos.x + xpos, camera.camPos.y + (windowHeight - ypos));
-    // rect.setPosition(mousePos.x, mousePos.y);
-}
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    ImGuiIO& io =  ImGui::GetIO();
-    if(!io.WantCaptureMouse && button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS)
-    {
-        gui::currentID = grid.testPoint(mousePos.x, mousePos.y);
-    }
-}
+
 void timestep()
 {
     if(!gui::paused)

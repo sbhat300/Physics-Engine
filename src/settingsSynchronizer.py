@@ -14,6 +14,7 @@ for i, line in enumerate(lines):
 entity_outputs = []
 polygon_outputs = []
 polygon_collider_outputs = []
+polygon_rigidbody_outputs = []
 for line in data:
     if line == '':
         break
@@ -32,11 +33,18 @@ for line in data:
         posSplit = raw[9][3:].split(',')
         scaleSplit = raw[10][3:].split(',')
         polygon_collider_outputs.append(objects[raw[0]] + '.addPolygonCollider(&' + grid_name + ', glm::vec2(' + posSplit[0] + ', ' + posSplit[1] + '), glm::vec2(' + scaleSplit[0] + ', ' + scaleSplit[1] + ')' + ', ' + raw[11][3:] + ');')
+    if raw[12][0] != 'x':
+        massSplit = raw[12][3:]
+        moiSplit = raw[13][3:]
+        restSplit = raw[14][3:]
+        muSplit = raw[15][3:]
+        polygon_rigidbody_outputs.append(objects[raw[0]] + '.addPolygonRigidbody(' + massSplit + ', ' + moiSplit + ', ' + restSplit + ', ' + muSplit + ');')
 code.seek(0)
 code_data = code.readlines()
 start_entity = False
 start_poly = False
 start_collider = False
+start_rigidbody = False
 started_at = 0
 counter = 0
 for i, line in enumerate(code_data):
@@ -46,7 +54,8 @@ for i, line in enumerate(code_data):
         start_entity = False
         start_poly = False
         start_collider = False
-        if counter == 3:
+        start_rigidbody = False
+        if counter == 4:
             break
     if start_entity:
         splitted = inp.split(',')
@@ -56,6 +65,8 @@ for i, line in enumerate(code_data):
         code_data[i] = '\t' + polygon_outputs[i - started_at - 1] + '\n'
     if start_collider:
         code_data[i] = '\t' + polygon_collider_outputs[i - started_at - 1] + '\n'
+    if start_rigidbody:
+        code_data[i] = '\t' + polygon_rigidbody_outputs[i - started_at - 1] + '\n'
     if inp == '/*-----ENTITY INITIALIZATION-----*/':
         start_entity = True
         started_at = i
@@ -65,6 +76,10 @@ for i, line in enumerate(code_data):
     if inp == '/*-----COLLIDER INITIALIZATION-----*/':
         start_collider = True
         started_at = i
+    if inp == '/*-----RIGIDBODY INITIALIZATION-----*/':
+        start_rigidbody = True
+        started_at = i
+        
 code.seek(0)
 code.writelines(code_data)
 code.close()
