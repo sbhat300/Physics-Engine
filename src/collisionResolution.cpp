@@ -286,9 +286,9 @@ void processInput(GLFWwindow* window)
     if(!gui::paused)
     {
         if (inputHandler::buttons[GLFW_KEY_Q].down)
-            rect.rigidbody.addForce(-7000, 0);
+            rect.rigidbody.addForce(-70, 0);
         if (inputHandler::buttons[GLFW_KEY_E].down)
-            rect.rigidbody.addForce(7000, 0);
+            rect.rigidbody.addForce(70, 0);
     }
     if(!io.WantCaptureMouse && inputHandler::buttons[GLFW_MOUSE_BUTTON_1].pressed)
         gui::currentID = grid.testPoint(inputHandler::worldMousePos.x, inputHandler::worldMousePos.y);

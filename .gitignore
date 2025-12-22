@@ -5,6 +5,8 @@ include/KHR
 include/glad/
 include/GLFW/
 lib/libglfw.3.4.dylib
+lib/libsoundio.a
+lib/libsoundio.dll
 include/glm/
 src/collisions.dSYM/
 .DS_Store

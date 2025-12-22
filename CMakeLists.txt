@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(Collisions VERSION 2.5.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -32,12 +32,13 @@ add_executable(${PROJECT_NAME}  ${PROJECT_SOURCE_DIR}/src/collisionResolution.cp
                                 ${PROJECT_SOURCE_DIR}/include/FileLoader/wavFile.cpp
                                 ${imgui_SRC}
                                 )
+target_compile_definitions(${PROJECT_NAME} PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/imgui)
 
 
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libglfw3dll.a)
+    target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libglfw3dll.a ${CMAKE_SOURCE_DIR}/lib/libsoundio.dll)
 elseif(APPLE)
     if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
         target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libglfw.3.dylib)

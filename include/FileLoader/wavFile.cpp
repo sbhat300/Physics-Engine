@@ -3,6 +3,7 @@
 #include <iostream>
 #include <Engine/setup.h>
 #include <Engine/engineConstants.h>
+#include <cstring>
 
 wavFile::wavFile()
 {

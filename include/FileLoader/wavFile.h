@@ -2,6 +2,7 @@
 #define WAVFILE_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 class wavFile
 {
