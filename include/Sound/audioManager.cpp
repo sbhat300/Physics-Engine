@@ -15,6 +15,6 @@ void audioManager::deleteClip(const char* name)
 
 void audioManager::destroy()
 {
-    for(std::unordered_map<const char*, wavFile>::iterator it = clips.begin(); it != clips.end(); it++)
-        clips.erase(it->first);
+    for(std::unordered_map<const char*, wavFile>::iterator it = clips.begin(); it != clips.end();)
+        it = clips.erase(it);
 }

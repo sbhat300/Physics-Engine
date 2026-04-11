@@ -22,9 +22,9 @@
 void DataLoader::setFileData(std::string inp)
 {
     std::fstream data;
-    bool windows = true;
-    #ifdef __APPLE__
-        windows = false;
+    bool windows = false;
+    #ifdef _WIN32 
+        windows = true;
     #endif
     data.open(fileLoader::loadData(windows), std::ios::out | std::ios::in | std::ios::trunc);
     data << inp;

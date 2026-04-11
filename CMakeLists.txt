@@ -11,7 +11,7 @@ add_executable(${PROJECT_NAME}  ${PROJECT_SOURCE_DIR}/src/collisionResolution.cp
                                 ${PROJECT_SOURCE_DIR}/src/glad.c
                                 ${PROJECT_SOURCE_DIR}/include/camera/camera2D.cpp
                                 ${PROJECT_SOURCE_DIR}/include/entity.cpp
-                                ${PROJECT_SOURCE_DIR}/include/fileLoader/fileLoader.cpp
+                                ${PROJECT_SOURCE_DIR}/include/FileLoader/fileLoader.cpp
                                 ${PROJECT_SOURCE_DIR}/include/ImguiImplementation/imguiInitialize.cpp
                                 ${PROJECT_SOURCE_DIR}/include/FileLoader/objDataLoader.cpp
                                 ${PROJECT_SOURCE_DIR}/include/Objects/point.cpp
@@ -46,4 +46,6 @@ elseif(APPLE)
         target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libglfw.3.4.dylib)
         target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libsoundio.2.0.0.dylib)
     endif()
+elseif(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} pulse ${CMAKE_SOURCE_DIR}/lib/libglfw3.a ${CMAKE_SOURCE_DIR}/lib/libsoundio.a)
 endif()

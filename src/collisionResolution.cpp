@@ -47,6 +47,7 @@ void timestep();
 void physics();
 void render(float alpha);
 void debugRender();
+void shutdown(GLFWwindow* window);
 
 float windowHeight = 600, windowWidth = 1200;
 int setup::maxLayers = 10;
@@ -55,7 +56,7 @@ float deltaTime = 0.0f, lastFrame = 0.0f;
 float setup::fixedDeltaTime = 1 / 60.0f;
 float setup::linearDamping = 0.999f;
 float setup::angularDamping = 0.997f;
-bool setup::windows = true;
+bool setup::windows = false;
 std::atomic<bool> setup::shouldWindowClose(false);
 float accumulator = 0;
 unsigned int counter = 0;
@@ -99,8 +100,8 @@ std::string fileLoader::rootPath = ROOT_DIR;
 
 
 int main() { 
-    #ifdef __APPLE__
-        setup::windows = false;
+    #ifdef _WIN32 
+        setup::windows = true;
     #endif
     float rectVertices[8] = {
         1 / 2.0f,  1 / 2.0f,  // top right
@@ -257,10 +258,10 @@ int main() {
         setup::shouldWindowClose.store(glfwWindowShouldClose(window), std::memory_order::memory_order_relaxed);
         std::thread::id this_id = std::this_thread::get_id();
     }
-    gui::terminate();
-    glfwTerminate();
     setup::shouldWindowClose.store(true);
     audioThread.join();
+    gui::terminate();
+    glfwTerminate();
 	return 0;
 }
 
@@ -274,7 +275,7 @@ void processInput(GLFWwindow* window)
 {
     ImGuiIO& io = ImGui::GetIO();
     if (inputHandler::buttons[GLFW_KEY_ESCAPE].down)
-        glfwSetWindowShouldClose(window, true);
+        shutdown(window);
     if (inputHandler::buttons[GLFW_KEY_W].down)
         camera.ProcessKeyboard(UP, deltaTime);
     if (inputHandler::buttons[GLFW_KEY_S].down)
@@ -286,12 +287,16 @@ void processInput(GLFWwindow* window)
     if(!gui::paused)
     {
         if (inputHandler::buttons[GLFW_KEY_Q].down)
-            rect.rigidbody.addForce(-70, 0);
+            rect.rigidbody.addForce(-100000 * deltaTime, 0);
         if (inputHandler::buttons[GLFW_KEY_E].down)
-            rect.rigidbody.addForce(70, 0);
+            rect.rigidbody.addForce(100000 * deltaTime, 0);
     }
     if(!io.WantCaptureMouse && inputHandler::buttons[GLFW_MOUSE_BUTTON_1].pressed)
         gui::currentID = grid.testPoint(inputHandler::worldMousePos.x, inputHandler::worldMousePos.y);
+}
+void shutdown(GLFWwindow* window)
+{
+    glfwSetWindowShouldClose(window, true);
 }
 void updateDeltaTime()
 {
