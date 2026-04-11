@@ -10,6 +10,7 @@ file(GLOB imgui_SRC ${PROJECT_SOURCE_DIR}/include/imgui/*.cpp)
 set(Collisions_SOURCES
     ${PROJECT_SOURCE_DIR}/src/glad.c
     ${PROJECT_SOURCE_DIR}/include/camera/camera2D.cpp
+    ${PROJECT_SOURCE_DIR}/include/entity.h
     ${PROJECT_SOURCE_DIR}/include/entity.cpp
     ${PROJECT_SOURCE_DIR}/include/FileLoader/fileLoader.cpp
     ${PROJECT_SOURCE_DIR}/include/ImguiImplementation/imguiInitialize.cpp
@@ -30,6 +31,7 @@ set(Collisions_SOURCES
     ${PROJECT_SOURCE_DIR}/include/Sound/audioLinkedList.cpp
     ${PROJECT_SOURCE_DIR}/include/Sound/audioManager.cpp
     ${PROJECT_SOURCE_DIR}/include/FileLoader/wavFile.cpp
+    ${PROJECT_SOURCE_DIR}/include/Engine/engine.cpp
     ${imgui_SRC}
 )
 

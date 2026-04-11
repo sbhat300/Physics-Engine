@@ -5,6 +5,7 @@ class sharedData
 {
     public:
         unsigned int rectVAO = 0, rectVBO = 0;
+        unsigned int mainShaderID = 0, pointShaderID = 0;
         void initVAOs();
     private:
         const float rectVertices[8] = {

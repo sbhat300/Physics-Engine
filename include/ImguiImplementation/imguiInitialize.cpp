@@ -44,7 +44,7 @@ void gui::preLoop()
         if(currentID != -1 && (*entityList)[currentID]->contain[0]) polygonOptions();
         if(currentID != -1 && (*entityList)[currentID]->contain[1]) polygonColliderOptions();
         if(currentID != -1 && (*entityList)[currentID]->contain[2]) polygonRigidbodyOptions();
-        shg();
+        if(spatialHash) shg();
         ImGui::End();
     }
 }

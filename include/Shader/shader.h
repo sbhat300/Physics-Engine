@@ -9,6 +9,7 @@ class Shader
 {
 public:
     unsigned int ID;
+    Shader();
     Shader(const char* vertexName, const char* fragmentName);
     Shader(const char* vertexName, const char* geometryName, const char* fragmentName);
     void use();

@@ -7,7 +7,6 @@ class entity;
 
 namespace DataLoader
 {
-    extern int previousDataPos;
     extern const char* name;
     // void reset();
     // void jumpToLine(int line);

@@ -22,6 +22,9 @@ spatialHashGrid::spatialHashGrid(float w, float h, glm::vec2 nc, glm::vec2 s)
     queryID = 1;
     cellWidth = width / numCells.x;
     cellHeight = height / numCells.y;
+    gridVAO = 0;
+    gridVBO = 0;
+    debugShaderProgram = 0;
 }
 void spatialHashGrid::setLayer(int l)
 {

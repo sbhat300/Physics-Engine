@@ -9,6 +9,7 @@
 #include <Engine/setup.h>
 #include "Shader/shader.h"
   
+Shader::Shader(){}
 
 Shader::Shader(const char* vertexName, const char* fragmentName)
 {

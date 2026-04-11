@@ -12,7 +12,7 @@ audioLinkedList audioPlayer::audios = audioLinkedList();
 
 int audioPlayer::start()
 {
-    audioManager::addClip("bgm", "Gusty Garden Galaxy");
+    //audioManager::addClip("bgm", "Gusty Garden Galaxy");
 
     int err = 0;
     SoundIo* soundIo = nullptr;
@@ -48,8 +48,9 @@ int audioPlayer::start()
     outStream->format = SoundIoFormatFloat32LE;
     outStream->write_callback = writeCallback;
 
-    audioClip bgm(&audioManager::clips["bgm"]);
-    outStream->userdata = (void*)&bgm;
+    //audioClip bgm(&audioManager::clips["bgm"]);
+    //outStream->userdata = (void*)&bgm;
+    outStream->userdata = nullptr;
 
     err = soundio_outstream_open(outStream);
     if(err)
@@ -93,7 +94,8 @@ void audioPlayer::writeCallback(SoundIoOutStream *outStream, int frameCountMin, 
     //Base pointer(s) of channel buffer(s) and bytes per sample
     SoundIoChannelArea* areas;
 
-    float frameStep = playData->audio->sampleRate / (float)outStream->sample_rate;
+    float frameStep = 1;
+    if(playData) frameStep = playData->audio->sampleRate / (float)outStream->sample_rate;
 
     int err;
     while(framesLeft > 0) //You are responsible for meeting the frame count requirement
@@ -118,7 +120,7 @@ void audioPlayer::writeCallback(SoundIoOutStream *outStream, int frameCountMin, 
                 //Change move char pointer certain amount of bytes, then cast it to a float pointer
                 //as we are writing a float
                 float* ptr = (float*)(areas[channel].ptr + areas[channel].step * frame);
-                if(channel >= playData->audio->numChannels) 
+                if(!playData || channel >= playData->audio->numChannels) 
                 {
                     *ptr = 0.0f;
                     continue;
@@ -130,7 +132,7 @@ void audioPlayer::writeCallback(SoundIoOutStream *outStream, int frameCountMin, 
                 *ptr = sample;
             }
         }
-        playData->framesPlayed += frameCount * frameStep;
+        if(playData) playData->framesPlayed += frameCount * frameStep;
 
         //Finish writing to buffer
         err = soundio_outstream_end_write(outStream);

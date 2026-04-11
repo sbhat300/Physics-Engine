@@ -10,7 +10,26 @@
 #include "entity.h"
 #include <string>
 #include <FileLoader/objDataLoader.h>
+#include <Scripting/baseScript.h>
 
+entity::entity(const char* l, std::unordered_map<unsigned int, entity*>* e, unsigned int* counter, sharedData* sh)
+{
+    label = l;
+    id = *counter;
+    position = glm::vec2(0, 0);
+    startingPosition = position;
+    scale = glm::vec2(0, 0);
+    startingScale = glm::vec2(0, 0);
+    rotation = 0;
+    startingRotation = 0;
+    entities = e;
+    (*e)[id] = this;
+    *counter += 1;
+    count = counter;
+    shared = sh;
+    guiSave = false;
+    for(int i = 0; i < ATTRS; i++) contain[i] = 0;
+}
 entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<unsigned int, entity*>* e, unsigned int* counter, sharedData* sh)
 {
     label = l;
@@ -27,6 +46,7 @@ entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_
     count = counter;
     shared = sh;
     guiSave = false;
+    for(int i = 0; i < ATTRS; i++) contain[i] = 0;
 }
 void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int layer)
 {
