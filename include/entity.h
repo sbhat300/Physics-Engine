@@ -36,12 +36,7 @@ class entity
         void addPolygonCollider(spatialHashGrid* spg = 0, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void addPolygonRigidbody(float mass, float momentOfInertia, float restitution, float mu);
         template <typename T>
-        void addScript() {
-            T* s = new T();
-            s->parent = this;
-            scripts.push_back(s);
-            contain[3] = true;
-        }
+        void addScript();
         void setPosition(float x, float y);
         void setScale(float x, float y);
         void setRotation(float degrees);
@@ -49,4 +44,5 @@ class entity
 
 };
 
+#include "entity.inl"
 #endif
