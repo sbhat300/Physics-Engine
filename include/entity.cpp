@@ -11,40 +11,41 @@
 #include <string>
 #include <FileLoader/objDataLoader.h>
 #include <Scripting/baseScript.h>
+#include <Engine/engine.h>
 
-entity::entity(const char* l, std::unordered_map<unsigned int, entity*>* e, unsigned int* counter, sharedData* sh)
+entity::entity(const char* l)
 {
     label = l;
-    id = *counter;
+    id = engine::counter;
     position = glm::vec2(0, 0);
     startingPosition = position;
     scale = glm::vec2(0, 0);
     startingScale = glm::vec2(0, 0);
     rotation = 0;
     startingRotation = 0;
-    entities = e;
-    (*e)[id] = this;
-    *counter += 1;
-    count = counter;
-    shared = sh;
+    entities = &engine::entities;
+    engine::entities[id] = this;
+    engine::counter += 1;
+    count = &engine::counter;
+    shared = &engine::shared;
     guiSave = false;
     for(int i = 0; i < ATTRS; i++) contain[i] = 0;
 }
-entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r, std::unordered_map<unsigned int, entity*>* e, unsigned int* counter, sharedData* sh)
+entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r)
 {
     label = l;
-    id = *counter;
+    id = engine::counter;
     position = p;
     startingPosition = p;
     scale = s;
     startingScale = s;
     rotation = r;
     startingRotation = r;
-    entities = e;
-    (*e)[id] = this;
-    *counter += 1;
-    count = counter;
-    shared = sh;
+    entities = &engine::entities;
+    engine::entities[id] = this;
+    engine::counter += 1;
+    count = &engine::counter;
+    shared = &engine::shared;
     guiSave = false;
     for(int i = 0; i < ATTRS; i++) contain[i] = 0;
 }

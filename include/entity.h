@@ -30,8 +30,8 @@ class entity
         std::fstream* data;
         bool guiSave;
         sharedData* shared;
-        entity(const char* l, std::unordered_map<unsigned int, entity*>* e, unsigned int* counter, sharedData* sh);
-        entity(const char* l = "default", glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, std::unordered_map<unsigned int, entity*>* e = 0, unsigned int* counter = 0, sharedData* sh = 0);
+        entity(const char* l);
+        entity(const char* l, glm::vec2 p, glm::vec2 s, float r);
         void addPolygon(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, glm::vec3 col = glm::vec3(1, 1, 1), int layer = 1);
         void addPolygonCollider(spatialHashGrid* spg = 0, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void addPolygonRigidbody(float mass, float momentOfInertia, float restitution, float mu);
