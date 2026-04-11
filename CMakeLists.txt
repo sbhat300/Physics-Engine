@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.0)
-project(Collisions VERSION 2.5.0 LANGUAGES C CXX)
+project(Engine VERSION 2.5.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -7,7 +7,7 @@ configure_file(${PROJECT_SOURCE_DIR}/config.h.in config.h)
 
 file(GLOB imgui_SRC ${PROJECT_SOURCE_DIR}/include/imgui/*.cpp)
 
-set(Collisions_SOURCES
+set(Engine_SOURCES
     ${PROJECT_SOURCE_DIR}/src/glad.c
     ${PROJECT_SOURCE_DIR}/include/camera/camera2D.cpp
     ${PROJECT_SOURCE_DIR}/include/entity.h
@@ -35,8 +35,8 @@ set(Collisions_SOURCES
     ${imgui_SRC}
 )
 
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src/collisionResolution.cpp ${Collisions_SOURCES})
-add_library(${PROJECT_NAME}_lib STATIC ${Collisions_SOURCES})
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src/collisionResolution.cpp ${Engine_SOURCES})
+add_library(${PROJECT_NAME}_lib STATIC ${Engine_SOURCES})
 set_target_properties(${PROJECT_NAME}_lib PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
 foreach(target ${PROJECT_NAME}_lib ${PROJECT_NAME})
