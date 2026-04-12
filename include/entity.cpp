@@ -96,3 +96,18 @@ void entity::setRotation(float degrees)
     rotation = degrees;
     if(contain[1]) collider.updatePoints();
 }
+
+void entity::addTag(std::string tag)
+{
+    tags.insert(tag);
+}
+
+void entity::removeTag(std::string tag)
+{
+    tags.erase(tag);
+}
+
+bool entity::hasTag(std::string tag)
+{
+    return tags.find(tag) != tags.end();
+}
