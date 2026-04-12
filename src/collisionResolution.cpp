@@ -39,6 +39,5 @@ int main() {
     inputHandler::trackKeys(&inputs[0], 8);
 
     engine::run();
-    
 	return 0;
 }

@@ -13,7 +13,7 @@ namespace playerScripts {
 
         void start() override 
         {
-            parent->addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.500000, 0.500000, 0.700000), 1);
+            parent->addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(1.0, 1.0, 1.0), 1);
             parent->addPolygonCollider(&engine::grid, glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000);
             parent->addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initRectangle();
@@ -24,6 +24,8 @@ namespace playerScripts {
             parent->rigidbody.setRectangleMomentOfInertia();
             parent->collider.debugShaderProgram = engine::shared.pointShaderID;
             parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
+
+            parent->polygonInstance.polygonTexture.loadTexture(fileLoader::loadTGA("cat", setup::windows).c_str());
         }
 
         void update() override 
@@ -49,23 +51,29 @@ namespace playerScripts {
         {
             engine::solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
         }
-        float rectVertices[8] = {
-            1 / 2.0f,  1 / 2.0f,  // top right
-            -1 / 2.0f,  2.0f,   // top left
-            -1 / 2.0f, -1 / 2.0f,  // bottom left 
-            1 / 2.0f, -1 / 2.0f  // bottom right
+        float rectVertices[16] = {
+            1 / 2.0f,  1 / 2.0f, 1.0f, 1.0f,  // top right
+            -1 / 2.0f,  2.0f, 0.0f, 1.0f,   // top left
+            -1 / 2.0f, -1 / 2.0f, 0.0f, 0.0f, // bottom left 
+            1 / 2.0f, -1 / 2.0f, 1.0f, 0.0f// bottom right
         };
         int rectIndices[6] = { 
                                 0, 1, 3,  
                                 1, 2, 3    
                             }; 
+        float colliderVertices[8] = {
+            1 / 2.0f,  1 / 2.0f,
+            -1 / 2.0f,  2.0f,
+            -1 / 2.0f, -1 / 2.0f,
+            1 / 2.0f, -1 / 2.0f 
+        };
         void start() override
         {
             parent->addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
             parent->addPolygonCollider(&engine::grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
             parent->addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initPolygon(4, rectVertices, 6, rectIndices);
-            parent->collider.initPolygon(4, rectVertices);
+            parent->collider.initPolygon(4, colliderVertices);
             parent->collider.setCollisionCallback([this](unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                 collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
             });

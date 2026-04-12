@@ -1,5 +1,5 @@
-#include "FileLoader/fileLoader.h"
 #include <iostream>
+#include "fileLoader.h"
 
 std::string fileLoader::loadShader(const char* name, bool windows)
 {
@@ -14,4 +14,8 @@ std::string fileLoader::loadData(bool windows)
 std::string fileLoader::loadWAV(const char* name, bool windows)
 {
     return rootPath + "/Audio/" + name + ".wav";
+}
+std::string fileLoader::loadTGA(const char* name, bool windows)
+{
+    return rootPath + "/Textures/" + name + ".tga";
 }

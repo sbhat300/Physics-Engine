@@ -13,6 +13,8 @@ set(Engine_SOURCES
     ${PROJECT_SOURCE_DIR}/include/entity.h
     ${PROJECT_SOURCE_DIR}/include/entity.cpp
     ${PROJECT_SOURCE_DIR}/include/FileLoader/fileLoader.cpp
+    ${PROJECT_SOURCE_DIR}/include/FileLoader/tgaLoader.cpp
+    ${PROJECT_SOURCE_DIR}/include/Rendering/texture.cpp
     ${PROJECT_SOURCE_DIR}/include/ImguiImplementation/imguiInitialize.cpp
     ${PROJECT_SOURCE_DIR}/include/FileLoader/objDataLoader.cpp
     ${PROJECT_SOURCE_DIR}/include/Objects/point.cpp

@@ -41,9 +41,9 @@ void polygon::initPrevious()
 void polygon::initPolygon(int vertexCount, float* p, int indexCount, int* ind)
 {
     numVertices = vertexCount;
-    vertices.resize(vertexCount * 2);
+    vertices.resize(vertexCount * 4);
     indices.resize(indexCount);
-    memcpy(&vertices[0], p, vertexCount * 2 * sizeof(float));
+    memcpy(&vertices[0], p, vertexCount * 4 * sizeof(float));
     memcpy(&indices[0], ind, indexCount * sizeof(float));
     numIndices = indexCount;
     normalizePoints();
@@ -103,6 +103,11 @@ void polygon::renderPolygon(float alpha)
     int colorLoc = glGetUniformLocation(currentShader, "col");
     glUniform3fv(colorLoc, 1, glm::value_ptr(color));
     glBindVertexArray(polygonVAO);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, polygonTexture.textureID);
+    glUniform1i(glGetUniformLocation(currentShader, "tex"), 0); 
+
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);             
     prevBasePos = *basePosition;
@@ -118,43 +123,45 @@ void polygon::initVAO()
     glGenBuffers(1, &polygonVBO);
     glBindVertexArray(polygonVAO);
     glBindBuffer(GL_ARRAY_BUFFER, polygonVBO);
-    glBufferData(GL_ARRAY_BUFFER, numVertices * 2 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, numVertices * 4 * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
     unsigned int EBO;
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(int), &indices[0], GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);  
     glBindVertexArray(0); 
 }
 void polygon::bufferNewData()
 {
     glBindVertexArray(polygonVAO);
     glBindBuffer(GL_ARRAY_BUFFER, polygonVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices * 3 * sizeof(float), &vertices[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, numVertices * 4 * sizeof(float), &vertices[0]);
     glBindVertexArray(0);
 }
 void polygon::normalizePoints()
 {
     glm::vec2 centroid(0, 0);
-    for(int i = 0; i < numVertices * 2; i += 2)
+    for(int i = 0; i < numVertices * 4; i += 4)
     {
         centroid.x += vertices[i];
         centroid.y += vertices[i + 1];
     }
     centroid.x /= numVertices;
     centroid.y /= numVertices;
-    for(int i = 0; i < numVertices * 2; i += 2)
+    for(int i = 0; i < numVertices * 4; i += 4)
     {
         vertices[i] -= centroid.x;
         vertices[i + 1] -= centroid.y;
     }
     float area = 0;
-    for(int i = 0; i < numVertices * 2; i += 2)
+    for(int i = 0; i < numVertices * 4; i += 4)
     {
-        int nextX = i + 2;
-        int nextY = i + 3;
-        if(nextX >= numVertices * 2)
+        int nextX = i + 4;
+        int nextY = i + 5;
+        if(nextX >= numVertices * 4)
         { 
             nextX = 0;
             nextY = 1;
@@ -162,10 +169,10 @@ void polygon::normalizePoints()
         area += vertices[i] * vertices[nextY] - vertices[nextX] * vertices[i + 1];
     }
     area /= 2;
-    float scale = 1 / std::sqrt(area);
-    for(int i = 0; i < numVertices * 2; i += 2)
+    float scale = 1 / std::sqrt(std::abs(area));
+    for(int i = 0; i < numVertices * 4; i += 4)
     {
-        vertices[i] *= scale;;
+        vertices[i] *= scale;
         vertices[i + 1] *= scale;
     }
 }
