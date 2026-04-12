@@ -8,5 +8,6 @@ namespace fileLoader
     std::string loadShader(const char* name, bool windows);
     std::string loadData(bool windows);
     std::string loadWAV(const char* name, bool windows);
+    std::string loadTGA(const char* name, bool windows);
 };
 #endif

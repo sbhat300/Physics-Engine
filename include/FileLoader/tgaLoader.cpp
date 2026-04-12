@@ -58,7 +58,7 @@ bool tgaLoader::loadUncompressed(const char* path, FILE* tgaFile, bool flip)
 
 bool tgaLoader::loadCompressed(const char* path, FILE* tgaFile, bool flip)
 {
-    return true;
+    return false;
 }
 bool tgaLoader::loadHeader(const char* path, FILE* tgaFile, bool srgb)
 {

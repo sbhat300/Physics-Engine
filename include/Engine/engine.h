@@ -12,6 +12,7 @@
 #include <glm/glm.hpp>
 #include <Shader/shader.h>
 #include <thread>
+#include <string>
 #include "config.h"
 
 
@@ -32,10 +33,11 @@ namespace engine
     extern GLFWwindow* window;
     extern unsigned int matrixUBO;
     extern Shader rayShader;
+    extern std::string rootPath;
 
     void setupWindow(float height=600, float width=1200, float maxLayers=10);
     void initializeSpatialHashGrid(float width, float height, glm::vec2 numCells, glm::vec2 start);
-    int initialize();
+    int initialize(std::string root);
     void initializeSolver(float bias, float slop, float smallestImpulse, float restitutionSlop);
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
     void timestep();

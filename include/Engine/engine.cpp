@@ -44,6 +44,7 @@ float engine::fpsTimer = 0;
 GLFWwindow* engine::window = nullptr;
 unsigned int engine::matrixUBO = 0;
 Shader engine::rayShader;
+std::string engine::rootPath = "";
 
 void engine::setupWindow(float height, float width, float maxLayers)
 {
@@ -63,8 +64,10 @@ void engine::initializeSpatialHashGrid(float width, float height, glm::vec2 numC
     grid.debugShaderProgram = rayShader.ID;
 }
 
-int engine::initialize()
+int engine::initialize(std::string rootDir)
 {
+    rootPath = rootDir;
+    fileLoader::rootPath = rootPath;
     camera = camera2D(glm::vec3(0, 0, setup::maxLayers));
     deltaTime = 0.0f;
     lastFrame = 0.0f;

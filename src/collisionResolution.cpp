@@ -6,11 +6,12 @@
 #include <Engine/sharedData.h>
 #include <Engine/engine.h>
 #include <Scripting/baseScript.h>
+#include <config.h>
 #include "playerScripts.h"
 
 int main() { 
     engine::setupWindow();
-    engine::initialize();
+    engine::initialize(ROOT_DIR);
     engine::initializeSpatialHashGrid(900, 700, glm::vec2(3, 3), glm::vec2(-380, -400));
     engine::initializeSolver(0.01f, 0.1f, 0.1f, 1.0f);
 
