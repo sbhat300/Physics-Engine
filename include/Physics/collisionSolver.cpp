@@ -45,9 +45,11 @@ void collisionSolver::reset()
     collisions.clear();
     collisionManifolds.clear();
 }
-void collisionSolver::registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, 
+void collisionSolver::registerCollision(entity* firstE, entity* secondE, int numContactPoints, glm::vec2 normal, 
                                         float penDepth, glm::vec2 point1, glm::vec2 point2)
 {
+    unsigned int first = firstE->id;
+    unsigned int second = secondE->id;
     collisionInfo newCollision;
     newCollision.cp1 = point1;
     newCollision.cp2 = point2;

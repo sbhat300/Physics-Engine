@@ -12,6 +12,7 @@
 #include "Physics/polygonCollider.h"
 #include <Engine/setup.h>
 #include <cmath>
+#include <Engine/engine.h>
 
 polygonCollider::polygonCollider(){}
 polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r, entity* b)
@@ -36,7 +37,7 @@ void polygonCollider::updateCollider()
 {
     if(collide) checkCollisions();
 }
-void polygonCollider::setCollisionCallback(std::function<void(unsigned int, unsigned int, glm::vec2, float, int, glm::vec2, glm::vec2)> cb)
+void polygonCollider::setCollisionCallback(std::function<void(entity*, entity*, glm::vec2, float, int, glm::vec2, glm::vec2)> cb)
 {
     collisionCallback = cb;
     collide = true;
@@ -333,7 +334,7 @@ void polygonCollider::checkCollisions()
         {
             clipped.numPoints--;
         }
-        collisionCallback(id, (*test).id, smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
+        collisionCallback(engine::entities[id], engine::entities[(*test).id], smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
     }
 }
 void polygonCollider::project(glm::vec2* axis, std::vector<glm::vec2> &vertices, int numVertices)
@@ -437,7 +438,7 @@ void polygonCollider::checkAABBCollisions(polygonCollider* second)
             normal = normals[i];
         }
     }
-    collisionCallback(id, (*second).id, normal, penetration, 0, centroid, (*second).centroid);
+    collisionCallback(engine::entities[id], engine::entities[(*second).id], normal, penetration, 0, centroid, (*second).centroid);
 }
 void polygonCollider::setPositionOffset(float x, float y)
 {

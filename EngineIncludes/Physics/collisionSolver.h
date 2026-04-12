@@ -58,7 +58,7 @@ class collisionSolver
         collisionSolver(unsigned int* c);
         void reset();
         void updateCollisions();
-        void registerCollision(unsigned int first, unsigned int second, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2);
+        void registerCollision(entity* firstE, entity* secondE, int numContactPoints, glm::vec2 normal, float penDepth, glm::vec2 point1, glm::vec2 point2);
         void resolveCollisions();
         void setupManifolds();
         void warmStart();

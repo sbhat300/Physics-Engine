@@ -2,11 +2,12 @@
 #include <ImguiImplementation/imguiInitialize.h>
 #include <Engine/engine.h>
 #include <Engine/inputHandler.h>
+#include <entity.h>
 
 namespace playerScripts {
     class rect : public baseScript 
     {
-        void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
+        void collisionCallback(entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
         {
             engine::solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
         }
@@ -18,7 +19,7 @@ namespace playerScripts {
             parent->addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initRectangle();
             parent->collider.initRectangle();
-            parent->collider.setCollisionCallback([this](unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
+            parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                 collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
             });
             parent->rigidbody.setRectangleMomentOfInertia();
@@ -47,7 +48,7 @@ namespace playerScripts {
 
     class bottomFloor: public baseScript 
     {
-        void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
+        void collisionCallback(entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
         {
             engine::solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
         }
@@ -74,7 +75,7 @@ namespace playerScripts {
             parent->addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initPolygon(4, rectVertices, 6, rectIndices);
             parent->collider.initPolygon(4, colliderVertices);
-            parent->collider.setCollisionCallback([this](unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
+            parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                 collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
             });
             parent->rigidbody.setRectangleMomentOfInertia();
@@ -90,7 +91,7 @@ namespace playerScripts {
 
     class rect2: public baseScript 
     {
-        void collisionCallback(unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
+        void collisionCallback(entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
         {
             engine::solver.registerCollision(first, second, contactPoints, collisionNormal, penetrationDepth, cp1, cp2);
         }
@@ -101,7 +102,7 @@ namespace playerScripts {
             parent->addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initRectangle();
             parent->collider.initRectangle();
-            parent->collider.setCollisionCallback([this](unsigned int first, unsigned int second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
+            parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                 collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
             });
             parent->rigidbody.setRectangleMomentOfInertia();
