@@ -145,10 +145,6 @@ void engine::run()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        //REMOVE
-        if (inputHandler::buttons[GLFW_KEY_ESCAPE].down)
-            engine::shutdown();
-
         fpsTimer -= deltaTime;
         if(fpsTimer < 0)
         {
@@ -169,7 +165,7 @@ void engine::run()
         bufferMatrices(matrixUBO);
 
         timestep();
-        grid.drawGrid();
+        if(grid.wantsDraw) grid.drawGrid();
 
         gui::postLoop();
         glfwSwapBuffers(window);

@@ -25,6 +25,7 @@ spatialHashGrid::spatialHashGrid(float w, float h, glm::vec2 nc, glm::vec2 s)
     gridVAO = 0;
     gridVBO = 0;
     debugShaderProgram = 0;
+    wantsDraw = false;
 }
 void spatialHashGrid::setLayer(int l)
 {

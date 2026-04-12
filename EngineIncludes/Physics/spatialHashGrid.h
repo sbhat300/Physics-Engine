@@ -18,6 +18,7 @@ class spatialHashGrid
         int debugShaderProgram;
         float layer;
         glm::vec3 color;
+        bool wantsDraw;
         spatialHashGrid(float w = 0, float h = 0, glm::vec2 nc = glm::vec2(0, 0), glm::vec2 s = glm::vec2(0, 0));
         void add(polygonCollider* obj);
         void remove(polygonCollider* obj);
