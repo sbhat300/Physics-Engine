@@ -49,6 +49,11 @@ entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r)
     guiSave = false;
     for(int i = 0; i < ATTRS; i++) contain[i] = 0;
 }
+entity::~entity()
+{
+    for(baseScript* s : scripts) delete s;
+    scripts.clear();
+}
 void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int layer)
 {
     polygonInstance = polygon(this, p, s, r, col, layer);
@@ -58,9 +63,9 @@ void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int la
     polygonInstance.shared = shared;
     contain[0] = true;
 }
-void entity::addPolygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r)
+void entity::addPolygonCollider(glm::vec2 p, glm::vec2 s, float r)
 {
-    collider = polygonCollider(spg, p, s, r, this);
+    collider = polygonCollider(&engine::grid, p, s, r, this);
     collider.basePosition = &position;
     collider.baseScale = &scale;
     collider.baseRotation = &rotation;

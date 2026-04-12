@@ -37,7 +37,7 @@ set(Engine_SOURCES
     ${imgui_SRC}
 )
 
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src/collisionResolution.cpp ${Engine_SOURCES})
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/src/collisionResolution.cpp ${PROJECT_SOURCE_DIR}/src/playerScripts.h ${Engine_SOURCES})
 add_library(${PROJECT_NAME}_lib STATIC ${Engine_SOURCES})
 set_target_properties(${PROJECT_NAME}_lib PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 

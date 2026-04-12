@@ -34,8 +34,9 @@ class entity
         std::unordered_set<std::string> tags;
         entity(const char* l);
         entity(const char* l, glm::vec2 p, glm::vec2 s, float r);
+        ~entity();
         void addPolygon(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, glm::vec3 col = glm::vec3(1, 1, 1), int layer = 1);
-        void addPolygonCollider(spatialHashGrid* spg = 0, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
+        void addPolygonCollider(glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0);
         void addPolygonRigidbody(float mass, float momentOfInertia, float restitution, float mu);
         template <typename T>
         void addScript();

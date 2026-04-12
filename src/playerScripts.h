@@ -15,7 +15,7 @@ namespace playerScripts {
         void start() override 
         {
             parent->addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(1.0, 1.0, 1.0), 1);
-            parent->addPolygonCollider(&engine::grid, glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000);
+            parent->addPolygonCollider(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000);
             parent->addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initRectangle();
             parent->collider.initRectangle();
@@ -71,7 +71,7 @@ namespace playerScripts {
         void start() override
         {
             parent->addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.800000, 0.400000, 0.600000), 1);
-            parent->addPolygonCollider(&engine::grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
+            parent->addPolygonCollider(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
             parent->addPolygonRigidbody(10.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initPolygon(4, rectVertices, 6, rectIndices);
             parent->collider.initPolygon(4, colliderVertices);
@@ -98,7 +98,7 @@ namespace playerScripts {
         void start() override
         {
             parent->addPolygon(glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(0.200000, 0.400000, 0.300000), 1);
-            parent->addPolygonCollider(&engine::grid, glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
+            parent->addPolygonCollider( glm::vec2(0.000000, 0.000000), glm::vec2(1.000000, 1.000000), 0.000000);
             parent->addPolygonRigidbody(0.0f, 0.0f, 0.0f, 0.4f);
             parent->polygonInstance.initRectangle();
             parent->collider.initRectangle();
