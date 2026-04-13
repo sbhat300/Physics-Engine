@@ -4,6 +4,25 @@
 #include <Engine/inputHandler.h>
 #include <entity.h>
 
+namespace textures
+{
+    extern texture* defaultTexture;
+    extern texture* cat;
+    void loadTextures() 
+    {
+        cat = new texture();
+        cat->loadTexture(fileLoader::loadTGA("cat", setup::windows).c_str());
+
+        defaultTexture = new texture();
+    }
+
+    void deleteTextures()
+    {
+        delete cat;
+        delete defaultTexture;
+    }
+};
+
 namespace playerScripts {
     class rect : public baseScript 
     {
@@ -27,7 +46,7 @@ namespace playerScripts {
                 parent->collider.debugShaderProgram = engine::shared.pointShaderID;
                 parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
 
-                parent->polygonInstance.polygonTexture.loadTexture(fileLoader::loadTGA("cat", setup::windows).c_str());
+                parent->polygonInstance.polygonTexture = textures::cat;
             }
 
             void update() override 
@@ -83,6 +102,7 @@ namespace playerScripts {
                 parent->rigidbody.setRectangleMomentOfInertia();
                 parent->collider.debugShaderProgram = engine::shared.pointShaderID;
                 parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
+                parent->polygonInstance.polygonTexture = textures::defaultTexture;
             }
 
             void fixedUpdate() override
@@ -111,6 +131,7 @@ namespace playerScripts {
                 parent->rigidbody.setRectangleMomentOfInertia();
                 parent->collider.debugShaderProgram = engine::shared.pointShaderID;
                 parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
+                parent->polygonInstance.polygonTexture = textures::defaultTexture;
             }
     };
 

@@ -9,6 +9,9 @@
 #include <config.h>
 #include "playerScripts.h"
 
+texture* textures::cat = 0;
+texture* textures::defaultTexture = 0;
+
 int main() { 
     engine::setupWindow();
     engine::initialize(ROOT_DIR);
@@ -24,6 +27,8 @@ int main() {
     engine::shared.pointShaderID = pointShader.ID;
 
     //------ENGINE INITIALIZATION DONE-----
+
+    textures::loadTextures();
 
     entity bottomFloor("small rect", glm::vec2(-79.000000, -40.000000), glm::vec2(50.000000, 50.000000), glm::radians(180.000000));
     entity rect("player", glm::vec2(0, 10), glm::vec2(40.000000, 40.000000), glm::radians(20.0f));

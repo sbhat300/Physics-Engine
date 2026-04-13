@@ -106,7 +106,7 @@ void polygon::renderPolygon(float alpha)
     glBindVertexArray(polygonVAO);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, polygonTexture.textureID);
+    glBindTexture(GL_TEXTURE_2D, polygonTexture->textureID);
     glUniform1i(glGetUniformLocation(currentShader, "tex"), 0); 
 
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
