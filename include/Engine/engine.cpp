@@ -133,13 +133,6 @@ int engine::initialize(std::string rootDir)
 
 void engine::run()
 {
-    for(std::pair<const int, entity*> obj : entities)
-    {
-        if(obj.second->contain[3]) 
-        {
-            for(baseScript* script : obj.second->scripts) script->start();
-        }
-    }
     while(!setup::shouldWindowClose.load())
     {
         glfwPollEvents();
