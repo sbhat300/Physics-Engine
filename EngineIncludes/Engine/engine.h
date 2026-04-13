@@ -36,6 +36,7 @@ namespace engine
     extern Shader rayShader;
     extern std::string rootPath;
     extern std::stack<entity*> deleteQueue;
+    extern glm::vec3 clearColor;
 
     void setupWindow(float height=600, float width=1200, float maxLayers=10);
     void initializeSpatialHashGrid(float width, float height, glm::vec2 numCells, glm::vec2 start);
@@ -51,6 +52,7 @@ namespace engine
     void configureShader(Shader& shader);
     void run();
     void deleteEntity(entity* e);
+    void setBackgroundColor(float x, float y, float z);
 }
 
 #endif

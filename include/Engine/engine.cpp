@@ -46,6 +46,7 @@ unsigned int engine::matrixUBO = 0;
 Shader engine::rayShader;
 std::string engine::rootPath = "";
 std::stack<entity*> engine::deleteQueue;
+glm::vec3 engine::clearColor(0, 0, 0);
 
 void engine::setupWindow(float height, float width, float maxLayers)
 {
@@ -157,14 +158,17 @@ void engine::run()
         }
         inputHandler::update(window, &camera, windowHeight);
         //TODO: OPTIMIZE EVERYTHING HERE AND NOT LOOP THROUGH EVERY ENTITY EVERY TIME
-        for(std::pair<const int, entity*> obj : entities)
+        if(!gui::paused)
         {
-            if(obj.second->contain[3]) 
+            for(std::pair<const int, entity*> obj : entities)
             {
-                for(baseScript* script : obj.second->scripts) script->update();
+                if(obj.second->contain[3]) 
+                {
+                    for(baseScript* script : obj.second->scripts) script->update();
+                }
             }
         }
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         bufferMatrices(matrixUBO);
 
@@ -292,4 +296,9 @@ void engine::configureShader(Shader& shader)
 void engine::deleteEntity(entity* e)
 {
     deleteQueue.push(e);
+}
+
+void engine::setBackgroundColor(float x, float y, float z)
+{
+    clearColor = glm::vec3(x, y, z);
 }

@@ -43,7 +43,7 @@ class entity
         void addScript();
         void setPosition(float x, float y);
         void setScale(float x, float y);
-        void setRotation(float degrees);
+        void setRotation(float radians);
         void addTag(std::string tag);
         void removeTag(std::string tag);
         bool hasTag(std::string tag);

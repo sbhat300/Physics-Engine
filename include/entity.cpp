@@ -107,9 +107,9 @@ void entity::setScale(float x, float y)
         rigidbody.setRectangleMomentOfInertia();
     }
 }
-void entity::setRotation(float degrees)
+void entity::setRotation(float radians)
 {
-    rotation = degrees;
+    rotation = radians;
     if(contain[1]) collider.updatePoints();
 }
 
