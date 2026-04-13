@@ -52,3 +52,8 @@ texture& texture::operator=(texture&& other) noexcept
     }
     return *this;
 }
+
+void texture::deleteTexture()
+{
+    glDeleteTextures(1, &textureID);
+}

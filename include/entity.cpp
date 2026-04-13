@@ -53,6 +53,15 @@ entity::~entity()
 {
     for(baseScript* s : scripts) delete s;
     scripts.clear();
+    engine::entities.erase(id);
+    if(contain[0]) polygonInstance.polygonTexture.deleteTexture(); //TODO: remove this when polygon stores a texture pointer
+}
+void entity::unregister()
+{
+    for(baseScript* s : scripts) delete s;
+    scripts.clear();
+    engine::entities.erase(id);
+    if(contain[0]) polygonInstance.polygonTexture.deleteTexture(); //TODO: remove this when polygon stores a texture pointer
 }
 void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int layer)
 {

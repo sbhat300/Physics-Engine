@@ -15,6 +15,7 @@ class texture
         texture& operator=(texture&& other) noexcept;
         void loadTexture(const char* path);
         void loadTexture(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+        void deleteTexture();
 
     private:
         tgaLoader imgLoader;
