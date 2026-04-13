@@ -216,7 +216,7 @@ void engine::timestep()
     }
     else
     {
-        render(0);
+        render(1);
     }
 }
 
@@ -225,6 +225,8 @@ void engine::physics()
     solver.reset();
     for(std::pair<const int, entity*> obj : entities) 
     {
+        if(obj.second->contain[0]) 
+            obj.second->polygonInstance.updatePreviousState();
         if((*obj.second).contain[1]) (*obj.second).collider.updateCollider();
         if(obj.second->contain[3]) 
         {
@@ -244,7 +246,11 @@ void engine::render(float alpha)
 {
     for(std::pair<const int, entity*> obj : entities)
     {
-        if((*obj.second).contain[0]) (*obj.second).polygonInstance.render(alpha);
+        if((*obj.second).contain[0]) 
+        {
+            if(obj.second->contain[2]) (*obj.second).polygonInstance.render(alpha);
+            else (*obj.second).polygonInstance.render(1);
+        }
         if((*obj.second).contain[1])
         {
             if((*obj.second).collider.shouldRenderBounds) 

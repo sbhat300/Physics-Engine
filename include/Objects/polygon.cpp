@@ -9,6 +9,7 @@
 #include <iostream>
 #include <entity.h>
 #include "Objects/polygon.h"
+#include <mathFuncs.h>
 
 polygon::polygon(){}
 polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int l)
@@ -92,12 +93,12 @@ void polygon::renderPolygon(float alpha)
     {
         initVAO();
     }
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(interpolate(*basePosition, prevBasePos, alpha), layer));
-    model = glm::rotate(model, interpolate(*baseRotation, prevBaseRot, alpha), glm::vec3(0, 0, 1));
-    model = glm::translate(model, glm::vec3(interpolate(positionOffset, prevPos, alpha), 0));
-    model = glm::rotate(model, interpolate(rotationOffset, prevRot, alpha), glm::vec3(0, 0, 1));
-    model = glm::scale(model, glm::vec3(interpolate(*baseScale * scaleOffset, prevBaseScale * prevScale, alpha), 0));
+    glm::mat4 model = glm::mat4(1.0f);    
+    model = glm::translate(model, glm::vec3(interpolate(prevBasePos, *basePosition, alpha), layer));
+    model = glm::rotate(model, mathFuncs::interpolate(prevBaseRot, *baseRotation, alpha), glm::vec3(0, 0, 1));
+    model = glm::translate(model, glm::vec3(interpolate(prevPos, positionOffset, alpha), 0));
+    model = glm::rotate(model, mathFuncs::interpolate(prevRot, rotationOffset, alpha), glm::vec3(0, 0, 1));
+    model = glm::scale(model, glm::vec3(interpolate(prevBaseScale * prevScale, *baseScale * scaleOffset, alpha), 0));
     int modelLoc = glGetUniformLocation(currentShader, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
     int colorLoc = glGetUniformLocation(currentShader, "col");
@@ -110,12 +111,6 @@ void polygon::renderPolygon(float alpha)
 
     glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);             
-    prevBasePos = *basePosition;
-    prevBaseRot = *baseRotation;
-    prevBaseScale = *baseScale;
-    prevScale = scaleOffset;
-    prevRot = rotationOffset;
-    prevPos = positionOffset;
 }
 void polygon::initVAO()
 {
@@ -176,11 +171,18 @@ void polygon::normalizePoints()
         vertices[i + 1] *= scale;
     }
 }
-float polygon::interpolate(float first, float second, float alpha)
-{
-    return first * alpha + second * (1.0f - alpha);
-}
+
 glm::vec2 polygon::interpolate(glm::vec2 first, glm::vec2 second, float alpha)
 {
-    return glm::vec2(interpolate(first.x, second.x, alpha), interpolate(first.y, second.y, alpha));
+    return glm::vec2(mathFuncs::interpolate(first.x, second.x, alpha), mathFuncs::interpolate(first.y, second.y, alpha));
+}
+
+void polygon::updatePreviousState()
+{
+    prevBasePos = *basePosition;
+    prevBaseRot = *baseRotation;
+    prevBaseScale = *baseScale;
+    prevScale = scaleOffset;
+    prevRot = rotationOffset;
+    prevPos = positionOffset;
 }

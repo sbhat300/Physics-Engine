@@ -38,6 +38,7 @@ class polygon
         void setColor(glm::vec3 col);
         void setLayer(int l);
         void setRotationOffset(float degrees);
+        void updatePreviousState();
         void setScaleOffset(float x, float y);
     private:
         unsigned int polygonVAO, polygonVBO;
@@ -46,7 +47,6 @@ class polygon
         void bufferNewData();
         void normalizePoints();
         glm::vec2 interpolate(glm::vec2 first, glm::vec2 second, float alpha);
-        float interpolate(float first, float second, float alpha);
         void initPrevious();
 };
 #endif
