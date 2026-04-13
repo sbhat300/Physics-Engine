@@ -45,6 +45,7 @@ GLFWwindow* engine::window = nullptr;
 unsigned int engine::matrixUBO = 0;
 Shader engine::rayShader;
 std::string engine::rootPath = "";
+std::stack<entity*> engine::deleteQueue;
 
 void engine::setupWindow(float height, float width, float maxLayers)
 {
@@ -173,6 +174,12 @@ void engine::run()
         gui::postLoop();
         glfwSwapBuffers(window);
         setup::shouldWindowClose.store(glfwWindowShouldClose(window), std::memory_order::memory_order_relaxed);
+
+        while(!deleteQueue.empty())
+        {
+            delete deleteQueue.top();
+            deleteQueue.pop();
+        }
     }
     setup::shouldWindowClose.store(true);
     audioThread.join();
@@ -280,4 +287,9 @@ void engine::configureShader(Shader& shader)
     shader.use();
     unsigned int uniformBlock = glGetUniformBlockIndex(shader.ID, "Matrices");
     glUniformBlockBinding(shader.ID, uniformBlock, 0);
+}
+
+void engine::deleteEntity(entity* e)
+{
+    deleteQueue.push(e);
 }

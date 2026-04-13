@@ -55,6 +55,7 @@ entity::~entity()
     scripts.clear();
     engine::entities.erase(id);
     if(contain[0]) polygonInstance.polygonTexture.deleteTexture(); //TODO: remove this when polygon stores a texture pointer
+    if(contain[1]) collider.grid->remove(&collider);
 }
 void entity::unregister()
 {
@@ -62,6 +63,7 @@ void entity::unregister()
     scripts.clear();
     engine::entities.erase(id);
     if(contain[0]) polygonInstance.polygonTexture.deleteTexture(); //TODO: remove this when polygon stores a texture pointer
+    if(contain[1]) collider.grid->remove(&collider);
 }
 void entity::addPolygon(glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int layer)
 {
