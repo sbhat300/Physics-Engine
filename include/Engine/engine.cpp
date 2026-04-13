@@ -222,12 +222,9 @@ void engine::physics()
     for(std::pair<const int, entity*> obj : entities) 
     {
         if((*obj.second).contain[1]) (*obj.second).collider.updateCollider();
-        for(std::pair<const int, entity*> obj : entities)
+        if(obj.second->contain[3]) 
         {
-            if(obj.second->contain[3]) 
-            {
-                for(baseScript* script : obj.second->scripts) script->fixedUpdate();
-            }
+            for(baseScript* script : obj.second->scripts) script->fixedUpdate();
         }
     }
     for(std::pair<unsigned int, entity*> obj : entities) 
