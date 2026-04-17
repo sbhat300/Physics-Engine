@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
 #include <limits>
+#include <entity.h>
 
 #include "Physics/spatialHashGrid.h"
 
@@ -108,10 +109,13 @@ std::vector<polygonCollider*> spatialHashGrid::getNearby(polygonCollider* obj)
         {
             for(auto object = grid[i][j].begin(); object != grid[i][j].end(); object++)
             {
-                if(queryID != (*(*object)).queryID)
+                if((*object)->base->enabled)
                 {
-                    out.push_back(*object);
-                    (*(*object)).queryID = queryID;
+                    if(queryID != (*(*object)).queryID)
+                    {
+                        out.push_back(*object);
+                        (*(*object)).queryID = queryID;
+                    }
                 }
             }
         }
@@ -123,7 +127,7 @@ std::vector<polygonCollider*> spatialHashGrid::getNearby(float x, float y)
     std::vector<polygonCollider*> out;
     std::pair<int, int> ind = getCellIndex(x, y);
     for(auto object = grid[ind.first][ind.second].begin(); object != grid[ind.first][ind.second].end(); object++)
-        out.push_back(*object);
+        if((*object)->base->enabled) out.push_back(*object);
     return out;
 }
 void spatialHashGrid::remove(polygonCollider* obj)

@@ -15,6 +15,7 @@ polygon::polygon(){}
 polygon::polygon(entity* b, glm::vec2 p, glm::vec2 s, float r, glm::vec3 col, int l)
 {
     initialized = false;
+    shouldRender = true;
     scaleOffset = s;
     rotationOffset = r;
     positionOffset = p;
@@ -61,7 +62,7 @@ void polygon::initRectangle()
 }
 void polygon::render(float alpha)
 {
-    renderPolygon(alpha);
+    if(shouldRender) renderPolygon(alpha);
 }
 void polygon::setPositionOffset(float x, float y)
 {

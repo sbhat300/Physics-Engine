@@ -32,6 +32,7 @@ class entity
         bool guiSave;
         sharedData* shared;
         std::unordered_set<std::string> tags;
+        bool enabled;
         entity(const char* l);
         entity(const char* l, glm::vec2 p, glm::vec2 s, float r);
         ~entity();

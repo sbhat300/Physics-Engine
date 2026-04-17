@@ -29,10 +29,12 @@ entity::entity(const char* l)
     count = &engine::counter;
     shared = &engine::shared;
     guiSave = false;
+    enabled = true;
     for(int i = 0; i < ATTRS; i++) contain[i] = 0;
 }
 entity::entity(const char* l, glm::vec2 p, glm::vec2 s, float r)
 {
+    enabled = true;
     label = l;
     id = engine::counter;
     position = p;

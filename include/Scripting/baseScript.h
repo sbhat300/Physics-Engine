@@ -7,6 +7,7 @@ class baseScript
 {
     public:
         entity* parent;
+        bool active = true;
 
         virtual void start() {};
         virtual void update() {};

@@ -29,6 +29,7 @@ class polygon
         sharedData* shared;
         entity* base;
         texture* polygonTexture;
+        bool shouldRender;
         polygon();
         polygon(entity* b, glm::vec2 p = glm::vec2(0, 0), glm::vec2 s = glm::vec2(1, 1), float r = 0, glm::vec3 col = glm::vec3(1, 1, 1), int l = 1);
         void initPolygon(int vertexCount, float* p, int indexCount, int* ind);

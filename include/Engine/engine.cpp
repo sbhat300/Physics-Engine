@@ -155,9 +155,12 @@ void engine::run()
         {
             for(std::pair<const int, entity*> obj : entities)
             {
-                if(obj.second->contain[3]) 
+                if(obj.second->enabled && obj.second->contain[3]) 
                 {
-                    for(baseScript* script : obj.second->scripts) script->update();
+                    for(baseScript* script : obj.second->scripts) 
+                    {
+                        if(script->active) script->update();
+                    }
                 }
             }
         }
@@ -225,36 +228,45 @@ void engine::physics()
     solver.reset();
     for(std::pair<const int, entity*> obj : entities) 
     {
-        if(obj.second->contain[0]) 
-            obj.second->polygonInstance.updatePreviousState();
-        if((*obj.second).contain[1]) (*obj.second).collider.updateCollider();
-        if(obj.second->contain[3]) 
+        if(obj.second->enabled)
         {
-            for(baseScript* script : obj.second->scripts) script->fixedUpdate();
+            if(obj.second->contain[0]) 
+                obj.second->polygonInstance.updatePreviousState();
+            if((*obj.second).contain[1]) (*obj.second).collider.updateCollider();
+            if(obj.second->contain[3]) 
+            {
+                for(baseScript* script : obj.second->scripts) 
+                {
+                    if(script->active) script->fixedUpdate();
+                }
+            }
         }
     }
     for(std::pair<unsigned int, entity*> obj : entities) 
-        if((*obj.second).contain[2]) (*obj.second).rigidbody.updateVel();
+        if(obj.second->enabled && (*obj.second).contain[2]) (*obj.second).rigidbody.updateVel();
     //solve collisions
     solver.updateCollisions();
     solver.resolveCollisions();
     for(std::pair<unsigned int, entity*> obj : entities) 
-        if((*obj.second).contain[2]) (*obj.second).rigidbody.updatePos();
+        if(obj.second->enabled && (*obj.second).contain[2]) (*obj.second).rigidbody.updatePos();
 }
 
 void engine::render(float alpha)
 {
     for(std::pair<const int, entity*> obj : entities)
     {
-        if((*obj.second).contain[0]) 
+        if(obj.second->enabled)
         {
-            if(obj.second->contain[2]) (*obj.second).polygonInstance.render(alpha);
-            else (*obj.second).polygonInstance.render(1);
-        }
-        if((*obj.second).contain[1])
-        {
-            if((*obj.second).collider.shouldRenderBounds) 
-                (*obj.second).collider.renderColliderBounds(); 
+            if((*obj.second).contain[0]) 
+            {
+                if(obj.second->contain[2]) (*obj.second).polygonInstance.render(alpha);
+                else (*obj.second).polygonInstance.render(1);
+            }
+            if((*obj.second).contain[1])
+            {
+                if((*obj.second).collider.shouldRenderBounds) 
+                    (*obj.second).collider.renderColliderBounds(); 
+            }
         }
     }
 }

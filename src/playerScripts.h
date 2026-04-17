@@ -111,7 +111,7 @@ namespace playerScripts {
             }
     };
 
-    class rect2: public baseScript 
+    class rect2 : public baseScript 
     {
         public:
             void collisionCallback(entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2)
