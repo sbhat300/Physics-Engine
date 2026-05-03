@@ -52,6 +52,54 @@ void polygon::initPolygon(int vertexCount, float* p, int indexCount, int* ind)
     initPrevious();
     initialized = true;
 }
+void polygon::initCircle(int segments)
+{
+    if(segments == 32)
+    {
+        polygonVAO = shared->circleVAO;
+        numVertices = shared->circleNumVertices;
+        numIndices = shared->circleNumIndices;
+        initPrevious();
+        initialized = true;
+        return;
+    }
+
+    numVertices = segments + 1;
+    numIndices = segments * 3;
+    int circleNumVertices = numVertices;
+    vertices.resize(numVertices * 4);
+    indices.resize(numIndices);
+
+    vertices[0] = 0.0f;
+    vertices[1] = 0.0f;
+    vertices[2] = 0.5f;
+    vertices[3] = 0.5f;
+
+    for(int i = 1; i < circleNumVertices; i++)
+    {
+        int vIndex = i * 4;
+        float theta = 2 * M_PI * (float)(i - 1) / (circleNumVertices - 1);
+        float x = cos(theta);
+        float y = sin(theta);
+        vertices[vIndex] = x;
+        vertices[vIndex + 1] = y;
+        vertices[vIndex + 2] = (x + 1) / 2.0f;
+        vertices[vIndex + 3] = (y + 1) / 2.0f;
+    }
+
+    for(int i = 0; i < circleNumVertices - 1; i++)
+    {
+        int iIndex = i * 3;
+        indices[iIndex] = 0;
+        indices[iIndex + 1] = i + 1; 
+        indices[iIndex + 2] = (i + 1 == circleNumVertices - 1) ? 1 : i + 2;
+    }
+
+    initVAO();
+    initPrevious();
+    initialized = true;
+    std::cout << "initialized" << std::endl;
+}
 void polygon::initRectangle()
 {
     polygonVAO = (*shared).rectVAO;

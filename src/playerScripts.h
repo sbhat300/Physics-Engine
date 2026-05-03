@@ -37,7 +37,8 @@ namespace playerScripts {
                 parent->addPolygon(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000, glm::vec3(1.0, 1.0, 1.0), 1);
                 parent->addPolygonCollider(glm::vec2(0, 0), glm::vec2(1.000000, 1.000000), 0.000000);
                 parent->addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
-                parent->polygonInstance.initRectangle();
+                //parent->polygonInstance.initRectangle();
+                parent->polygonInstance.initCircle(32);
                 parent->collider.initRectangle();
                 parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                     collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
