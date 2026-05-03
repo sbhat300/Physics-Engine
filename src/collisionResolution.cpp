@@ -31,7 +31,7 @@ int main() {
     textures::loadTextures();
 
     entity bottomFloor("small rect", glm::vec2(-79.000000, -40.000000), glm::vec2(50.000000, 50.000000), glm::radians(180.000000));
-    entity rect("player", glm::vec2(0, 10), glm::vec2(40.000000, 40.000000), glm::radians(20.0f));
+    entity rect("player", glm::vec2(20, 10), glm::vec2(40.000000, 40.000000), glm::radians(20.0f));
     entity rect2("big rect", glm::vec2(68.000000, -246.000000), glm::vec2(861.000000, 98.000000), 0.000000);
     entity controls("controls");
 

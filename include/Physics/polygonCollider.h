@@ -12,6 +12,10 @@ class spatialHashGrid;
 class polygonCollider
 {
     public:
+        enum shapeType {
+            POLYGON,
+            CIRCLE
+        };
         struct edge {
             glm::vec2 v1;
             glm::vec2 v2;
@@ -21,6 +25,9 @@ class polygonCollider
             glm::vec2 points[2];
             int numPoints;
         };
+
+        shapeType shape;
+        float radius;
         bool aabb;
         unsigned int id;
         bool collide;
@@ -53,11 +60,13 @@ class polygonCollider
         bool pointInPolygon(glm::vec2 point);
         void initPolygon(int vertexCount, float* p, bool normalize = true);
         void initRectangle(bool axisAligned = false, bool normalize = true);
+        void initCircle(float r);
         void calcPoints();
         void updatePoints();
         void updatePointsNoRemove();
         void normalizePoints();
         void setPositionOffset(float x, float y);
+        void setRadius(float r);
         void setScaleOffset(float x, float y);
         void setRotationOffset(float r);
         void updateFurthestPoint();

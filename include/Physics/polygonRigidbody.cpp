@@ -56,6 +56,19 @@ void polygonRigidbody::setRectangleMomentOfInertia()
     momentOfInertia = mass * (scale.x * scale.x + scale.y * scale.y) / 12.0f;
     invMomentOfInertia = 1.0f / momentOfInertia;
 }
+void polygonRigidbody::setCircleMomentOfInertia()
+{
+    rectangleMomentOfInertia = false;
+    if(mass == 0)
+    {
+        momentOfInertia = 0;
+        invMomentOfInertia = 0;
+        return;
+    }
+    float r = base->collider.radius * base->scale.x * base->collider.scaleOffset.x;
+    momentOfInertia = 0.5f * mass * r * r;
+    invMomentOfInertia = 1.0f / momentOfInertia;
+}
 void polygonRigidbody::addForce(float x, float y)
 {
     force += glm::vec2(x, y);

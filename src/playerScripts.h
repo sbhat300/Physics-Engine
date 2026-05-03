@@ -39,11 +39,11 @@ namespace playerScripts {
                 parent->addPolygonRigidbody(15.0f, 0.0f, 0.0f, 0.4f);
                 //parent->polygonInstance.initRectangle();
                 parent->polygonInstance.initCircle(32);
-                parent->collider.initRectangle();
+                parent->collider.initCircle(1);
                 parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                     collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
                 });
-                parent->rigidbody.setRectangleMomentOfInertia();
+                parent->rigidbody.setCircleMomentOfInertia();
                 parent->collider.debugShaderProgram = engine::shared.pointShaderID;
                 parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
 

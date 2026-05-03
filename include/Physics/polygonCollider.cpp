@@ -32,6 +32,7 @@ polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s,
     queryID = 0;
     shouldRenderBounds = false;
     aabb = false;
+    shape = shapeType::POLYGON;
 }
 void polygonCollider::updateCollider()
 {
@@ -44,6 +45,10 @@ void polygonCollider::setCollisionCallback(std::function<void(entity*, entity*, 
 }
 bool polygonCollider::pointInPolygon(glm::vec2 point)
 {
+    if(shape == shapeType::CIRCLE)
+    {
+        return glm::length2(centroid - point) <= furthestDistance * furthestDistance;
+    }
     float neg = 0, pos = 0;
     if(glm::length2(centroid - point) > furthestDistance * furthestDistance) return false;
     for(int i = 0; i < numVertices; i++)
@@ -97,6 +102,16 @@ void polygonCollider::initRectangle(bool axisAligned, bool normalize)
     aabb = axisAligned;
     initialized = true;
 }
+void polygonCollider::initCircle(float r)
+{
+    shape = shapeType::CIRCLE;
+    aabb = false;
+    furthestDistance = r * baseScale->x * scaleOffset.x;
+    radius = r;
+    numVertices = 0;
+    initialized = true;
+    updatePointsNoRemove();
+}
 void polygonCollider::updatePoints()
 {
     calcPoints();
@@ -116,6 +131,17 @@ void polygonCollider::updatePointsNoRemove()
 }
 void polygonCollider::calcPoints()
 {
+
+    if(shape == shapeType::CIRCLE)
+    {
+        centroid = *basePosition + positionOffset;
+        minX = centroid.x - furthestDistance;
+        maxX = centroid.x + furthestDistance;
+        minY = centroid.y - furthestDistance;
+        maxY = centroid.y + furthestDistance;
+        return;
+    }
+
     centroid = glm::vec2(0, 0);
     for(int i = 0; i < numVertices * 2; i += 2)
     {
@@ -201,6 +227,7 @@ void polygonCollider::checkCollisions()
         float minOverlap = FLT_MAX;
         glm::vec2 smallestAxis;
         polygonCollider* test = *i;
+        if(!test->collide) continue;
         float centerDist = glm::length2(centroid - (*test).centroid);
         float radiusDist = furthestDistance + (*test).furthestDistance;
         if(centerDist > radiusDist * radiusDist) 
@@ -212,6 +239,89 @@ void polygonCollider::checkCollisions()
             checkAABBCollisions(test);
             continue;
         }
+
+        if(shape == shapeType::CIRCLE && test->shape == shapeType::CIRCLE)
+        {
+            glm::vec2 rDiff = test->centroid - centroid;
+            float dist = glm::length(rDiff);
+            glm::vec2 normal;
+            if(dist == 0.0f) normal = glm::vec2(0, 1);
+            else normal = rDiff / dist;
+
+            float penetration = radiusDist - dist;
+            glm::vec2 cp1 = centroid + normal * furthestDistance;
+            glm::vec2 cp2 = test->centroid - normal * test->furthestDistance; 
+            collisionCallback(base, test->base, normal, penetration, 1, cp1, cp2);
+            continue;
+        }
+
+        if(shape == shapeType::CIRCLE || test->shape == shapeType::CIRCLE)
+        {
+            polygonCollider* circle = (shape == shapeType::CIRCLE) ? this : test;
+            polygonCollider* polygon = (shape == shapeType::CIRCLE) ? test : this;
+
+            float minDist = FLT_MAX;
+            glm::vec2 closestVertex;
+            for(int j = 0; j < polygon->numVertices; j++)
+            {
+                float d = glm::length2(circle->centroid - polygon->points[j]);
+                if(d < minDist) 
+                { 
+                    minDist = d; 
+                    closestVertex = polygon->points[j]; 
+                }
+            }
+
+            std::vector<glm::vec2> axes;
+            for(int j = 0; j < polygon->numVertices; j++)
+            {
+                glm::vec2 v1(polygon->points[j].x, polygon->points[j].y);
+                int next = j + 1;
+                if(next >= polygon->numVertices) next = 0;
+                glm::vec2 v2(polygon->points[next].x, polygon->points[next].y);
+                glm::vec2 normal = v1 - v2;
+                normal = glm::normalize(glm::vec2(-normal.y, normal.x));
+                normal = glm::vec2(std::round(normal.x * 10000.0f) / 10000.0f, std::round(normal.y * 10000.0f) / 10000.0f);
+                axes.push_back(normal);
+            }
+            glm::vec2 circleAxis = circle->centroid - closestVertex;
+            if(glm::length2(circleAxis) > 0.0001f) axes.push_back(glm::normalize(circleAxis));
+
+            bool notColliding = false;
+            for(glm::vec2& axis : axes)
+            {
+                project(&axis, polygon->points, polygon->numVertices);
+                float pMin = minMax[0];
+                float pMax = minMax[1];
+                float cProj = glm::dot(axis, circle->centroid);
+                float cMin = cProj - circle->furthestDistance;
+                float cMax = cProj + circle->furthestDistance;
+                float right = cMax - pMin;
+                float left = pMax - cMin;
+                if(left < 0 || right < 0)
+                {
+                    notColliding = true;
+                    break;
+                }
+
+                float overlap = std::min(left, right);
+                if(overlap < minOverlap)
+                {
+                    minOverlap = overlap;
+                    smallestAxis = (right < left) ? -axis : axis; 
+                }
+            }
+
+            if(!notColliding)
+            {
+                if(glm::dot(smallestAxis, test->centroid - centroid) < 0) smallestAxis *= -1;
+                glm::vec2 cp = (shape == shapeType::CIRCLE) ? centroid + smallestAxis * furthestDistance : test->centroid - smallestAxis * test->furthestDistance;
+                collisionCallback(engine::entities[id], engine::entities[test->id], smallestAxis, minOverlap, 1, cp, cp);
+            }
+
+            continue;
+        }
+
         std::vector<glm::vec2> axes;
         std::set<std::pair<float, float>> currentAxes;
         for(int i = 0; i < numVertices; i++)
@@ -451,8 +561,19 @@ void polygonCollider::setScaleOffset(float x, float y)
     updatePoints();
     updateFurthestPoint();
 }
+void polygonCollider::setRadius(float r)
+{
+    radius = r;
+    updatePoints();
+    updateFurthestPoint();
+}
 void polygonCollider::updateFurthestPoint()
 {
+    if(shape == shapeType::CIRCLE)
+    {
+        furthestDistance = radius * baseScale->x * scaleOffset.x;
+        return;
+    }
     furthestDistance = -1;
     for(int i = 0; i < numVertices; i++)
     {
@@ -472,6 +593,40 @@ void polygonCollider::renderColliderBounds()
 {
     debugPoint.setColor(glm::vec3(0.0f, 1.0f, 1.0f));
     glUseProgram(debugShaderProgram);
+    if(shape == shapeType::CIRCLE)
+    {
+        debugPoint.setPosition(centroid.x, centroid.y);
+        debugPoint.setLayer(setup::maxLayers - 1);
+        debugPoint.size = 6;
+        debugPoint.render();
+
+        float currentRadius = radius * (*baseScale).x * scaleOffset.x;
+        float currentRot = *baseRotation + rotationOffset;
+        int debugSegments = 16;
+        
+        for(int i = 0; i < debugSegments; i++)
+        {
+            float theta = 2.0f * M_PI * ((float)i / debugSegments);
+            float angle = currentRot + theta;
+            
+            debugPoint.setPosition(centroid.x + std::cos(angle) * currentRadius, 
+                                   centroid.y + std::sin(angle) * currentRadius);
+            
+            if (i == 0) 
+            {
+                debugPoint.setColor(glm::vec3(1.0f, 0.0f, 0.0f)); 
+                debugPoint.size = 8;
+            } 
+            else 
+            {
+                debugPoint.setColor(glm::vec3(0.0f, 1.0f, 1.0f)); 
+                debugPoint.size = 6;
+            }
+            
+            debugPoint.render();
+        }
+        return;
+    }
     for(int i = 0; i < numVertices; i++)
     {
         debugPoint.setPosition(points[i].x, points[i].y);

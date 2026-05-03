@@ -150,6 +150,12 @@ void gui::polygonColliderOptions()
         nums[1] = (*(*entityList)[currentID]).collider.scaleOffset.y;
         if(ImGui::DragFloat2("Scale offset", nums, 0.25f))
             (*(*entityList)[currentID]).collider.setScaleOffset(std::max(0.0f, nums[0]), std::max(0.0f, nums[1]));
+        if((*(*entityList)[currentID]).collider.shape == polygonCollider::shapeType::CIRCLE)
+        {
+            nums[0] = (*(*entityList)[currentID]).collider.radius;
+            if(ImGui::DragFloat("Radius", &nums[0], 1))
+                (*(*entityList)[currentID]).collider.setRadius(nums[0]);
+        }
         nums[0] = glm::degrees((*(*entityList)[currentID]).collider.rotationOffset);
         if(ImGui::DragFloat("Rotation offset", &nums[0], 1))
             (*(*entityList)[currentID]).collider.setRotationOffset(glm::radians(nums[0]));

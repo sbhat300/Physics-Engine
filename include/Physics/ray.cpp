@@ -96,6 +96,35 @@ std::vector<rayData> ray::getCollisions()
     for(auto i = possibleCollisions.begin(); i != possibleCollisions.end(); i++)
     {
         polygonCollider* current = *i;
+
+        if(current->shape == polygonCollider::shapeType::CIRCLE)
+        {
+            glm::vec2 centroidToOrigin = origin - current->centroid;
+            float r = current->radius * current->baseScale->x * current->scaleOffset.x;
+
+            float b = 2.0f * glm::dot(centroidToOrigin, direction);
+            float c = glm::dot(centroidToOrigin, centroidToOrigin) - r * r;
+            float discriminant = b * b - 4 * c;
+
+            if(discriminant >= 0)
+            {
+                float t1 = (-b - std::sqrt(discriminant)) / 2.0f;
+                float t2 = (-b + std::sqrt(discriminant)) / 2.0f;
+                float hitT = -1.0f;
+                if (t1 > 0) hitT = t1;
+                else if (t2 > 0) hitT = t2;
+                if(hitT > 0 && (length == 0 || hitT <= length))
+                {
+                    rayData out;
+                    out.collisionPoint = origin + direction * hitT;
+                    out.collisionNormal = glm::normalize(out.collisionPoint - current->centroid);
+                    out.id = current->id;
+                    output.push_back(out);
+                }
+            }
+            continue;
+        }        
+
         float t = FLT_MAX;
         bool collide = false;
         glm::vec2 point = origin;
@@ -142,6 +171,35 @@ std::pair<bool, rayData> ray::getFirstCollision(std::vector<polygonCollider*>* t
     for(auto i = (*tests).begin(); i != (*tests).end(); i++)
     {
         polygonCollider* current = *i;
+
+        if(current->shape == polygonCollider::shapeType::CIRCLE)
+        {
+            glm::vec2 centroidToOrigin = origin - current->centroid;
+            float r = current->radius * current->baseScale->x * current->scaleOffset.x;
+
+            float b = 2.0f * glm::dot(centroidToOrigin, direction);
+            float c = glm::dot(centroidToOrigin, centroidToOrigin) - r * r;
+            float discriminant = b * b - 4 * c;
+
+            if(discriminant >= 0)
+            {
+                float t1 = (-b - std::sqrt(discriminant)) / 2.0f;
+                float t2 = (-b + std::sqrt(discriminant)) / 2.0f;
+                float hitT = -1.0f;
+                if (t1 > 0) hitT = t1;
+                else if (t2 > 0) hitT = t2;
+                if(hitT > 0 && (length == 0 || hitT <= length) && hitT < t)
+                {
+                    collide = true;
+                    t = hitT;
+                    point = origin + direction * t;
+                    normal = glm::normalize(point - current->centroid);
+                    id = current->id;
+                }
+            }
+            continue;
+        }
+
         for(int j = 0; j < (*current).numVertices; j++)
         {
             int jNext = j + 1;
