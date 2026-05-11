@@ -18,6 +18,7 @@ class polygonRigidbody
         polygonRigidbody();
         polygonRigidbody(float m, float moi, float r, float u, entity* b);
         void setRectangleMomentOfInertia();
+        void setCircleMomentOfInertia();
         void addForce(float x, float y);
         void addTorque(float forceX, float forceY, float xPos, float yPos);
         void addTorque(float amt);

@@ -223,7 +223,7 @@ void polygonCollider::checkCollisions()
     colliders = (*grid).getNearby(this);
     for(auto i = colliders.begin(); i != colliders.end(); i++)
     {
-        if((*(*i)).id == id) continue;
+        if((*(*i)).id <= id) continue;
         float minOverlap = FLT_MAX;
         glm::vec2 smallestAxis;
         polygonCollider* test = *i;
@@ -252,6 +252,7 @@ void polygonCollider::checkCollisions()
             glm::vec2 cp1 = centroid + normal * furthestDistance;
             glm::vec2 cp2 = test->centroid - normal * test->furthestDistance; 
             collisionCallback(base, test->base, normal, penetration, 1, cp1, cp2);
+            if(test->collisionCallback) test->collisionCallback(test->base, base, -normal, penetration, 1, cp1, cp2);
             continue;
         }
 
@@ -317,6 +318,7 @@ void polygonCollider::checkCollisions()
                 if(glm::dot(smallestAxis, test->centroid - centroid) < 0) smallestAxis *= -1;
                 glm::vec2 cp = (shape == shapeType::CIRCLE) ? centroid + smallestAxis * furthestDistance : test->centroid - smallestAxis * test->furthestDistance;
                 collisionCallback(engine::entities[id], engine::entities[test->id], smallestAxis, minOverlap, 1, cp, cp);
+                if(test->collisionCallback) test->collisionCallback(engine::entities[test->id], engine::entities[id], -smallestAxis, minOverlap, 1, cp, cp);
             }
 
             continue;
@@ -445,6 +447,7 @@ void polygonCollider::checkCollisions()
             clipped.numPoints--;
         }
         collisionCallback(engine::entities[id], engine::entities[(*test).id], smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
+        test->collisionCallback(engine::entities[test->id], engine::entities[id], -smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
     }
 }
 void polygonCollider::project(glm::vec2* axis, std::vector<glm::vec2> &vertices, int numVertices)
@@ -549,6 +552,7 @@ void polygonCollider::checkAABBCollisions(polygonCollider* second)
         }
     }
     collisionCallback(engine::entities[id], engine::entities[(*second).id], normal, penetration, 0, centroid, (*second).centroid);
+    if(second->collisionCallback) second->collisionCallback(engine::entities[second->id], engine::entities[id], -normal, penetration, 0, second->centroid, centroid);
 }
 void polygonCollider::setPositionOffset(float x, float y)
 {
