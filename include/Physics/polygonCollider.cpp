@@ -18,7 +18,7 @@ polygonCollider::polygonCollider(){}
 polygonCollider::polygonCollider(spatialHashGrid* spg, glm::vec2 p, glm::vec2 s, float r, entity* b)
 {
     initialized = false;
-    collide = false;
+    collide = true;
     positionOffset = p;
     scaleOffset = s;
     rotationOffset = r;
@@ -223,7 +223,8 @@ void polygonCollider::checkCollisions()
     colliders = (*grid).getNearby(this);
     for(auto i = colliders.begin(); i != colliders.end(); i++)
     {
-        if((*(*i)).id <= id) continue;
+        if((*(*i)).id == id) continue;
+        if((*(*i)).id < id && (*i)->collisionCallback) continue;
         float minOverlap = FLT_MAX;
         glm::vec2 smallestAxis;
         polygonCollider* test = *i;
@@ -447,7 +448,7 @@ void polygonCollider::checkCollisions()
             clipped.numPoints--;
         }
         collisionCallback(engine::entities[id], engine::entities[(*test).id], smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
-        test->collisionCallback(engine::entities[test->id], engine::entities[id], -smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
+        if(test->collisionCallback) test->collisionCallback(engine::entities[test->id], engine::entities[id], -smallestAxis, minOverlap, clipped.numPoints, clipped.points[0], clipped.points[1]);
     }
 }
 void polygonCollider::project(glm::vec2* axis, std::vector<glm::vec2> &vertices, int numVertices)
