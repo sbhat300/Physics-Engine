@@ -46,6 +46,7 @@ class polygonCollider
         float minX, maxX, minY, maxY;
         entity* base;
         glm::vec2 centroid;
+        float area;
         spatialHashGrid* grid;
         unsigned int queryID;
         std::pair<int, int> minIndices;

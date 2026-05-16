@@ -12,12 +12,12 @@ class polygonRigidbody
         float startMass, startMOI, startRestitution, startMu;
         float angularImpulse, angularVelocity, torque;
         float restitution;
-        bool rectangleMomentOfInertia;
+        bool polygonMomentOfInertia, circleMomentOfInertia;
         float mu;
         entity* base;
         polygonRigidbody();
         polygonRigidbody(float m, float moi, float r, float u, entity* b);
-        void setRectangleMomentOfInertia();
+        void setPolygonMomentOfInertia();
         void setCircleMomentOfInertia();
         void addForce(float x, float y);
         void addTorque(float forceX, float forceY, float xPos, float yPos);

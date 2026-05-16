@@ -164,8 +164,6 @@ void polygonCollider::calcPoints()
         }
         points[i / 2].x += (*basePosition).x;
         points[i / 2].y += (*basePosition).y;
-        centroid.x += points[i / 2].x;
-        centroid.y += points[i / 2].y;
     }
     maxX = points[0].x;
     minX = points[0].x;
@@ -178,25 +176,24 @@ void polygonCollider::calcPoints()
         minY = std::min(minY, points[i / 2].y);
         maxY = std::max(maxY, points[i / 2].y);
     }
-    centroid.x /= numVertices;
-    centroid.y /= numVertices;
+
+    int n = points.size();
+    area = 0;
+    for(int i = 0; i < points.size(); i++) area += points[i].x * points[(i + 1) % n].y - points[(i + 1) % n].x * points[i].y;
+    area /= 2;
+    for(int i = 0; i < n; i++)
+    {
+        centroid.x += (points[i].x + points[(i + 1) % n].x) * (points[i].x * points[(i + 1 ) % n].y - points[(i + 1) % n].x * points[i].y);
+        centroid.y += (points[i].y + points[(i + 1) % n].y) * (points[i].x * points[(i + 1 ) % n].y - points[(i + 1) % n].x * points[i].y);
+    }
+    centroid.x /= 6 * area;
+    centroid.y /= 6 * area;
 }
 void polygonCollider::normalizePoints()
 {
-    glm::vec2 centroid(0, 0);
-    for(int i = 0; i < numVertices * 2; i += 2)
-    {
-        centroid.x += vertices[i];
-        centroid.y += vertices[i + 1];
-    }
-    centroid.x /= numVertices;
-    centroid.y /= numVertices;
-    for(int i = 0; i < numVertices * 2; i += 2)
-    {
-        vertices[i] -= centroid.x;
-        vertices[i + 1] -= centroid.y;
-    }
-    float area = 0;
+    glm::vec2 centroid(0.0f, 0.0f);
+    float area = 0.0f;
+
     for(int i = 0; i < numVertices * 2; i += 2)
     {
         int nextX = i + 2;
@@ -206,10 +203,30 @@ void polygonCollider::normalizePoints()
             nextX = 0;
             nextY = 1;
         }
-        area += vertices[i] * vertices[nextY] - vertices[nextX] * vertices[i + 1];
+
+        float x0 = vertices[i];
+        float y0 = vertices[i + 1];
+        float x1 = vertices[nextX];
+        float y1 = vertices[nextY];
+
+        float cross = (x0 * y1) - (x1 * y0);
+        
+        area += cross;
+        centroid.x += (x0 + x1) * cross;
+        centroid.y += (y0 + y1) * cross;
     }
-    area /= 2;
-    float scale = 1 / std::sqrt(area);
+
+    area /= 2.0f;
+    centroid.x /= (6.0f * area);
+    centroid.y /= (6.0f * area);
+
+    for(int i = 0; i < numVertices * 2; i += 2)
+    {
+        vertices[i] -= centroid.x;
+        vertices[i + 1] -= centroid.y;
+    }
+
+    float scale = 1.0f / std::sqrt(std::abs(area));
     for(int i = 0; i < numVertices * 2; i += 2)
     {
         vertices[i] *= scale;
@@ -565,6 +582,11 @@ void polygonCollider::setScaleOffset(float x, float y)
     scaleOffset = glm::vec2(x, y);
     updatePoints();
     updateFurthestPoint();
+    if(base->contain[3]) 
+    {
+        if(base->rigidbody.polygonMomentOfInertia) base->rigidbody.setPolygonMomentOfInertia();
+        else if(base->rigidbody.circleMomentOfInertia) base->rigidbody.setCircleMomentOfInertia();
+    }
 }
 void polygonCollider::setRadius(float r)
 {

@@ -100,7 +100,7 @@ namespace playerScripts {
                 parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                     collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
                 });
-                parent->rigidbody.setRectangleMomentOfInertia();
+                parent->rigidbody.setPolygonMomentOfInertia();
                 parent->collider.debugShaderProgram = engine::shared.pointShaderID;
                 parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
                 parent->polygonInstance.polygonTexture = textures::defaultTexture;
@@ -129,7 +129,7 @@ namespace playerScripts {
                 parent->collider.setCollisionCallback([this](entity* first, entity* second, glm::vec2 collisionNormal, float penetrationDepth, int contactPoints, glm::vec2 cp1, glm::vec2 cp2) {
                     collisionCallback(first, second, collisionNormal, penetrationDepth, contactPoints, cp1, cp2);
                 });
-                parent->rigidbody.setRectangleMomentOfInertia();
+                parent->rigidbody.setPolygonMomentOfInertia();
                 parent->collider.debugShaderProgram = engine::shared.pointShaderID;
                 parent->polygonInstance.shaderProgram = engine::shared.mainShaderID;
                 parent->polygonInstance.polygonTexture = textures::defaultTexture;

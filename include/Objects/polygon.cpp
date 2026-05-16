@@ -187,40 +187,48 @@ void polygon::bufferNewData()
 }
 void polygon::normalizePoints()
 {
-    glm::vec2 centroid(0, 0);
+    glm::vec2 centroid(0.0f, 0.0f);
+    float area = 0.0f;
+
     for(int i = 0; i < numVertices * 4; i += 4)
     {
-        centroid.x += vertices[i];
-        centroid.y += vertices[i + 1];
+        int nextX = i + 4;
+        int nextY = i + 5;
+        if(i + 4 >= numVertices * 4)
+        { 
+            nextX = 0;
+            nextY = 1;
+        }
+
+        float x0 = vertices[i];
+        float y0 = vertices[i + 1];
+        float x1 = vertices[nextX];
+        float y1 = vertices[nextY];
+
+        float cross = (x0 * y1) - (x1 * y0);
+        
+        area += cross;
+        centroid.x += (x0 + x1) * cross;
+        centroid.y += (y0 + y1) * cross;
     }
-    centroid.x /= numVertices;
-    centroid.y /= numVertices;
+
+    area /= 2.0f;
+    centroid.x /= (6.0f * area);
+    centroid.y /= (6.0f * area);
+
     for(int i = 0; i < numVertices * 4; i += 4)
     {
         vertices[i] -= centroid.x;
         vertices[i + 1] -= centroid.y;
     }
-    float area = 0;
-    for(int i = 0; i < numVertices * 4; i += 4)
-    {
-        int nextX = i + 4;
-        int nextY = i + 5;
-        if(nextX >= numVertices * 4)
-        { 
-            nextX = 0;
-            nextY = 1;
-        }
-        area += vertices[i] * vertices[nextY] - vertices[nextX] * vertices[i + 1];
-    }
-    area /= 2;
-    float scale = 1 / std::sqrt(std::abs(area));
+
+    float scale = 1.0f / std::sqrt(std::abs(area));
     for(int i = 0; i < numVertices * 4; i += 4)
     {
         vertices[i] *= scale;
         vertices[i + 1] *= scale;
     }
 }
-
 glm::vec2 polygon::interpolate(glm::vec2 first, glm::vec2 second, float alpha)
 {
     return glm::vec2(mathFuncs::interpolate(first.x, second.x, alpha), mathFuncs::interpolate(first.y, second.y, alpha));

@@ -19,7 +19,8 @@ polygonRigidbody::polygonRigidbody(float m, float moi, float r, float u, entity*
     torque = 0;
     angularImpulse = 0;
     mu = u;
-    rectangleMomentOfInertia = false;
+    polygonMomentOfInertia = false;
+    circleMomentOfInertia = false;
     startMass = mass;
     startMOI = momentOfInertia;
     startRestitution = restitution;
@@ -43,22 +44,48 @@ void polygonRigidbody::updatePos()
     (*base).setPosition(newPos.x, newPos.y);
     (*base).setRotation(newRot);
 }
-void polygonRigidbody::setRectangleMomentOfInertia()
+void polygonRigidbody::setPolygonMomentOfInertia()
 {
-    rectangleMomentOfInertia = true;
-    if(mass == 0) 
+    polygonMomentOfInertia = true;
+    if(mass == 0) return;
+
+    std::vector<float>& points = base->collider.vertices;
+    int numVertices = base->collider.numVertices;
+    
+    float sumX = 0.0f;
+    float sumY = 0.0f;
+    float localArea = 0.0f;
+
+    for(int i = 0; i < numVertices * 2; i += 2)
     {
-        momentOfInertia = 0;
-        invMomentOfInertia = 0;
-        return;
+        int nextX = (i + 2) % (numVertices * 2);
+        int nextY = (i + 3) % (numVertices * 2);
+
+        float x0 = points[i];
+        float y0 = points[i + 1];
+        float x1 = points[nextX];
+        float y1 = points[nextY];
+
+        float cross = (x0 * y1) - (x1 * y0);
+        localArea += cross;
+
+        sumX += cross * (x0 * x0 + x0 * x1 + x1 * x1);
+        sumY += cross * (y0 * y0 + y0 * y1 + y1 * y1);
     }
+    localArea /= 2.0f;
+
+    float factor = mass / (12.0f * localArea);
+    float ix = sumY * factor;
+    float iy = sumX * factor;
+
     glm::vec2 scale = (*base).scale * (*base).collider.scaleOffset;
-    momentOfInertia = mass * (scale.x * scale.x + scale.y * scale.y) / 12.0f;
-    invMomentOfInertia = 1.0f / momentOfInertia;
+    
+    momentOfInertia = std::abs(ix * scale.y * scale.y + iy * scale.x * scale.x);
+    invMomentOfInertia = momentOfInertia == 0 ? 0 : 1.0f / momentOfInertia;
 }
 void polygonRigidbody::setCircleMomentOfInertia()
 {
-    rectangleMomentOfInertia = false;
+    circleMomentOfInertia = true;
     if(mass == 0)
     {
         momentOfInertia = 0;
@@ -122,7 +149,8 @@ void polygonRigidbody::setMass(float m)
 {
     mass = m < 0 ? 0 : m;
     invMass = mass == 0 ? 0 : 1 / mass;
-    if(rectangleMomentOfInertia) setRectangleMomentOfInertia();
+    if(polygonMomentOfInertia) setPolygonMomentOfInertia();
+    else if(circleMomentOfInertia) setCircleMomentOfInertia();
 }
 void polygonRigidbody::setMomentOfInertia(float i)
 {

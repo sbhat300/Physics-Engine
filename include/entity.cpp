@@ -102,9 +102,10 @@ void entity::setScale(float x, float y)
         collider.updatePoints();
         collider.updateFurthestPoint();
     }
-    if(contain[2] && rigidbody.rectangleMomentOfInertia)
+    if(contain[2])
     {
-        rigidbody.setRectangleMomentOfInertia();
+        if(rigidbody.polygonMomentOfInertia) rigidbody.setPolygonMomentOfInertia();
+        else if(rigidbody.circleMomentOfInertia) rigidbody.setCircleMomentOfInertia();
     }
 }
 void entity::setRotation(float radians)
