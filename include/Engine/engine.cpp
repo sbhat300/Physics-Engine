@@ -57,7 +57,7 @@ void engine::setupWindow(float height, float width, float maxLayers)
 
 void engine::initializeSpatialHashGrid(float width, float height, glm::vec2 numCells, glm::vec2 start)
 {
-    grid = spatialHashGrid(900, 700, glm::vec2(3, 3), glm::vec2(-380, -400));
+    grid = spatialHashGrid(width, height, numCells, start);
     grid.setColor(glm::vec3(1, 0.5f, 1));
     grid.setLayer(0);
     gui::spatialHash = &grid;
@@ -139,6 +139,9 @@ void engine::run()
 
         gui::preLoop();
 
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -164,8 +167,6 @@ void engine::run()
                 }
             }
         }
-        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         bufferMatrices(matrixUBO);
 
         timestep();

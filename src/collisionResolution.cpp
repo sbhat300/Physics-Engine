@@ -20,11 +20,14 @@ int main() {
 
     Shader shader("gravityVShader", "gravityFShader");
     Shader pointShader("pointVShader", "gravityFShader");
+    Shader rayShader("rayVShader", "gravityFShader");
 
     engine::configureShader(shader);
     engine::configureShader(pointShader);
+    engine::configureShader(rayShader);
     engine::shared.mainShaderID = shader.ID;
     engine::shared.pointShaderID = pointShader.ID;
+    engine::shared.rayShaderID = rayShader.ID;
 
     //------ENGINE INITIALIZATION DONE-----
 

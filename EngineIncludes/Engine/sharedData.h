@@ -6,7 +6,7 @@ class sharedData
     public:
         unsigned int rectVAO = 0, rectVBO = 0;
         unsigned int circleVAO = 0, circleVBO = 0;
-        unsigned int mainShaderID = 0, pointShaderID = 0;
+        unsigned int mainShaderID = 0, pointShaderID = 0, rayShaderID = 0;
         static constexpr int circleNumVertices = 33;
         static constexpr int circleNumIndices = (circleNumVertices - 1) * 3;
         void initVAOs();

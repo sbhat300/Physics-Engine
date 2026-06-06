@@ -18,11 +18,13 @@ class ray
         float length;
         float layer;
         spatialHashGrid* grid;
+        unsigned int shader;
 
         ray(glm::vec2 o = glm::vec2(0, 0), glm::vec2 d = glm::vec2(0, 1), float l = 0, spatialHashGrid* g = 0);
         void render();
         void setColor(glm::vec3 col);
         void setLayer(int l);
+        void setDirection(float x, float y);
         void bufferNewData();
         float getLineIntersection(glm::vec2* point1, glm::vec2* point2);
         std::vector<rayData> getCollisions();

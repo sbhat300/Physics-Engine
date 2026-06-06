@@ -34,6 +34,10 @@ void ray::setLayer(int l)
 {
     layer = (float)l;
 }
+void ray::setDirection(float x, float y)
+{
+    direction = glm::normalize(glm::vec2(x, y));
+}
 void ray::bufferNewData()
 {
     glm::vec2 firstPoint = origin;
@@ -51,8 +55,7 @@ void ray::drawRay()
     if(length == 0) secondPoint = origin + direction * 5.0f;
     else secondPoint = origin + direction * length;
     float points[] = {firstPoint.x, firstPoint.y, layer, secondPoint.x, secondPoint.y, layer};
-    GLint currentShader = 0;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &currentShader);   
+    glUseProgram(shader);
     if(rayVAO == 0)
     {
         glGenVertexArrays(1, &rayVAO);
@@ -64,7 +67,7 @@ void ray::drawRay()
         glEnableVertexAttribArray(0);  
         glBindVertexArray(0); 
     }
-    int colorLoc = glGetUniformLocation(currentShader, "col");
+    int colorLoc = glGetUniformLocation(shader, "col");
     glUniform3fv(colorLoc, 1, glm::value_ptr(color));
     glBindVertexArray(rayVAO);
     glBindBuffer(GL_ARRAY_BUFFER, rayVBO);
