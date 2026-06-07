@@ -231,7 +231,19 @@ std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
         if(tMaxX == tMaxY)
         {
             int next = xInd + stepX;
+            if(next >= 0 && next < numCells.x)
             for(auto object = grid[next][yInd].begin(); object != grid[next][yInd].end(); object++)
+            {
+                if(queryID != (*(*object)).queryID)
+                {
+                    output.push_back(*object);
+                    (*(*object)).queryID = queryID;
+                }
+            }
+
+            next = yInd + stepY;
+            if(next >= 0 && next < numCells.y)
+            for(auto object = grid[xInd][next].begin(); object != grid[xInd][next].end(); object++)
             {
                 if(queryID != (*(*object)).queryID)
                 {
@@ -345,26 +357,32 @@ std::pair<bool, rayData> spatialHashGrid::getNearbyRaySingle(ray* r)
         if(tMaxX == tMaxY)
         {
             int next = xInd + stepX;
-            test = (*r).getFirstCollision(&grid[next][yInd]);
-            if(test.first)
+            if(next >= 0 && next < numCells.x)
             {
-                float hitT = glm::dot(test.second.collisionPoint - r->origin, r->direction);
-                if(hitT < bestT)
+                test = (*r).getFirstCollision(&grid[next][yInd]);
+                if(test.first)
                 {
-                    bestT = hitT;
-                    bestHit = test;
+                    float hitT = glm::dot(test.second.collisionPoint - r->origin, r->direction);
+                    if(hitT < bestT)
+                    {
+                        bestT = hitT;
+                        bestHit = test;
+                    }
                 }
             }
 
             next = yInd + stepY;
-            test = (*r).getFirstCollision(&grid[xInd][next]);
-            if(test.first)
+            if(next >= 0 && next < numCells.y)
             {
-                float hitT = glm::dot(test.second.collisionPoint - r->origin, r->direction);
-                if(hitT < bestT)
+                test = (*r).getFirstCollision(&grid[xInd][next]);
+                if(test.first)
                 {
-                    bestT = hitT;
-                    bestHit = test;
+                    float hitT = glm::dot(test.second.collisionPoint - r->origin, r->direction);
+                    if(hitT < bestT)
+                    {
+                        bestT = hitT;
+                        bestHit = test;
+                    }
                 }
             }
         }
