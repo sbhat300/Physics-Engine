@@ -52,6 +52,7 @@ class polygonCollider
         std::pair<int, int> minIndices;
         std::pair<int, int> maxIndices;
         std::vector<std::vector<int>> shgIndex;
+        std::vector<std::string> ignoreTags;
         bool shouldRenderBounds;
 
         polygonCollider();

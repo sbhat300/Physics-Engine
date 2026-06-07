@@ -161,6 +161,7 @@ std::pair<int, int> spatialHashGrid::getCellIndexNoClamp(float x, float y)
 float spatialHashGrid::clamp(float n, float lower, float upper) {
   return std::max(lower, std::min(n, upper));
 }
+//TODO: ALLOW FOR RAYS OF INFINITE LENGTH
 std::vector<polygonCollider*> spatialHashGrid::getNearbyRay(ray* r)
 {
     std::vector<polygonCollider*> output;

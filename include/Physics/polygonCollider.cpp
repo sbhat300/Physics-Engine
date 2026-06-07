@@ -246,6 +246,17 @@ void polygonCollider::checkCollisions()
         glm::vec2 smallestAxis;
         polygonCollider* test = *i;
         if(!test->collide) continue;
+        bool shouldIgnore = false;
+        //TODO: CHANGE THIS TO A BITMASK
+        for(std::string& s: ignoreTags) 
+        {
+            if(test->base->hasTag(s)) 
+            {
+                shouldIgnore = true;
+                break;
+            }
+        }
+        if(shouldIgnore) continue;
         float centerDist = glm::length2(centroid - (*test).centroid);
         float radiusDist = furthestDistance + (*test).furthestDistance;
         if(centerDist > radiusDist * radiusDist) 
