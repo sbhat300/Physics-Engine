@@ -19,6 +19,7 @@ class ray
         float layer;
         spatialHashGrid* grid;
         unsigned int shader;
+        std::uint32_t filterBitmask;
 
         ray(glm::vec2 o = glm::vec2(0, 0), glm::vec2 d = glm::vec2(0, 1), float l = 0, spatialHashGrid* g = 0);
         void render();

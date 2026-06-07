@@ -21,6 +21,7 @@ ray::ray(glm::vec2 o, glm::vec2 d, float l, spatialHashGrid* g)
     rayVAO = 0;
     rayVBO = 0;
     grid = g;
+    filterBitmask = 0;
 }
 void ray::render()
 {
@@ -99,6 +100,7 @@ std::vector<rayData> ray::getCollisions()
     for(auto i = possibleCollisions.begin(); i != possibleCollisions.end(); i++)
     {
         polygonCollider* current = *i;
+        if(current->currentBitmask & filterBitmask) continue;
 
         if(current->shape == polygonCollider::shapeType::CIRCLE)
         {
@@ -174,6 +176,7 @@ std::pair<bool, rayData> ray::getFirstCollision(std::vector<polygonCollider*>* t
     for(auto i = (*tests).begin(); i != (*tests).end(); i++)
     {
         polygonCollider* current = *i;
+        if(current->currentBitmask & filterBitmask) continue;
 
         if(current->shape == polygonCollider::shapeType::CIRCLE)
         {

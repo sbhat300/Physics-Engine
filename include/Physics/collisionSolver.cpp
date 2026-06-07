@@ -147,20 +147,24 @@ void collisionSolver::warmStart()
         {
             manifoldIndex++;
         }
+        if(manifoldIndex >= collisionManifolds.size()) break;
         while(warmIndex < prevTots.size() && collisionManifolds[manifoldIndex].firstID > prevTots[warmIndex].firstID) 
         {
             warmIndex++;
         }
+        if(warmIndex >= prevTots.size()) break;
         while(warmIndex < prevTots.size() && manifoldIndex < collisionManifolds.size() && collisionManifolds[manifoldIndex].firstID == prevTots[warmIndex].firstID)
         {
             while(manifoldIndex < collisionManifolds.size() && collisionManifolds[manifoldIndex].secondID < prevTots[warmIndex].secondID) 
             {
                 manifoldIndex++;
             }
+            if(manifoldIndex >= collisionManifolds.size()) break;
             while(warmIndex < prevTots.size() && collisionManifolds[manifoldIndex].secondID > prevTots[warmIndex].secondID) 
             {
                 warmIndex++;
             }
+            if(warmIndex >= prevTots.size()) break;
             if(collisionManifolds[manifoldIndex].secondID == prevTots[warmIndex].secondID)
             {
                 for(int i = 0; i < collisionManifolds[manifoldIndex].numContacts; i++)
