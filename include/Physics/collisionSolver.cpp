@@ -5,6 +5,8 @@
 #include <mathFuncs.h>
 #include <algorithm>
 
+//TODO: Add other constraints like joints and stuff
+
 collisionSolver::collisionSolver()
 {
     temp.first = 0;
