@@ -37,6 +37,7 @@ namespace engine
     extern std::string rootPath;
     extern std::stack<entity*> deleteQueue;
     extern glm::vec3 clearColor;
+    extern bool headless;
 
     void setupWindow(float height=600, float width=1200, float maxLayers=10);
     void initializeSpatialHashGrid(float width, float height, glm::vec2 numCells, glm::vec2 start);
@@ -53,6 +54,8 @@ namespace engine
     void run();
     void deleteEntity(entity* e);
     void setBackgroundColor(float x, float y, float z);
+    void enableHeadless();
+    void disableHeadless();
 }
 
 #endif

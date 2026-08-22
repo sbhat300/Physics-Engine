@@ -35,6 +35,7 @@ float engine::deltaTime = 0;
 float engine::lastFrame = 0;
 float engine::accumulator = 0;
 unsigned int engine::counter = 0;
+bool engine::headless = false;
 std::unordered_map<unsigned int, entity*> engine::entities = std::unordered_map<unsigned int, entity*>();
 sharedData engine::shared = sharedData();
 collisionSolver engine::solver = collisionSolver(nullptr);
@@ -147,11 +148,16 @@ void engine::run()
     {
         glfwPollEvents();
 
-        gui::preLoop();
+        if(!headless)
+        {
+            gui::preLoop();
 
-        glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+            glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            
+            inputHandler::update(window, &camera, windowHeight);
+        }
+
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -162,7 +168,7 @@ void engine::run()
             gui::fps = std::round(1 / deltaTime);
             fpsTimer = 1;
         }
-        inputHandler::update(window, &camera, windowHeight);
+
         //TODO: OPTIMIZE EVERYTHING HERE AND NOT LOOP THROUGH EVERY ENTITY EVERY TIME
         if(!gui::paused)
         {
@@ -180,10 +186,14 @@ void engine::run()
         bufferMatrices(matrixUBO);
 
         timestep();
-        if(grid.wantsDraw) grid.drawGrid();
+        
+        if(!headless)
+        {
+            if(grid.wantsDraw) grid.drawGrid();
 
-        gui::postLoop();
-        glfwSwapBuffers(window);
+            gui::postLoop();
+            glfwSwapBuffers(window);
+        }
         setup::shouldWindowClose.store(glfwWindowShouldClose(window), std::memory_order::memory_order_relaxed);
 
         while(!deleteQueue.empty())
@@ -216,7 +226,11 @@ void engine::framebuffer_size_callback(GLFWwindow* window, int width, int height
 
 void engine::timestep()
 {
-    if(!gui::paused)
+    if(headless)
+    {
+        physics();
+    }
+    else if(!gui::paused)
     {
         accumulator += deltaTime > 0.2f ? 0.2f : deltaTime;
         if(accumulator > 0.2f) accumulator = 0.2f;
@@ -323,4 +337,16 @@ void engine::deleteEntity(entity* e)
 void engine::setBackgroundColor(float x, float y, float z)
 {
     clearColor = glm::vec3(x, y, z);
+}
+
+void engine::enableHeadless()
+{
+    glfwHideWindow(window);
+    headless = true;
+}
+
+void engine::disableHeadless()
+{
+    glfwShowWindow(window);
+    headless = false;
 }
